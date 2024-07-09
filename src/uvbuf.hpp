@@ -97,7 +97,7 @@ public:
 		_cleanup = false;
 	}
 
-	explicit CUVBuf(void* data, const size_t& size) : uvbuf_t(data, len) {
+	explicit CUVBuf(void* data, const size_t& size) : uvbuf_t(data, size) {
 		_cleanup = false;
 	}
 
