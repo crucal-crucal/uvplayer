@@ -1,0 +1,8 @@
+[logging]
+fileName=../log/stdout.log
+maxSize=1000000
+maxBackups=10
+bufferSize=100
+minLevel=DEBUG
+msgFormat={timestamp} {typeNr} {type} {thread} {message}\n  in {file} line {line} function {function}
+timestampFormat=dd.MM.yyyy hh:mm:ss.zzz
