@@ -29,6 +29,7 @@ macro(uv_setup_Qt)
                 Gui
                 Widgets
                 OpenGL
+                Multimedia
                 REQUIRED
         )
     else ()

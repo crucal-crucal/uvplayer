@@ -7,7 +7,9 @@
 #include <uvmessagebox.hpp>
 
 #include "uvcenterwidget.hpp"
+#include "uvconf.hpp"
 #include "uvdef.hpp"
+#include "uvglwidget.hpp"
 #include "uvmainwindow_p.hpp"
 #include "uvopenmediadlg.hpp"
 
@@ -27,11 +29,18 @@ CUVMainWindowPrivate::~CUVMainWindowPrivate() = default;
 void CUVMainWindowPrivate::init() {
 	Q_Q(CUVMainWindow);
 
-	q->setBaseSize(MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT);
+	const int w = g_confile->get<int>("main_window_width", "ui", MAIN_WINDOW_WIDTH);
+	const int h = g_confile->get<int>("main_window_height", "ui", MAIN_WINDOW_HEIGHT);
+	q->setBaseSize(w, h);
+	q->resize(w, h);
 
-	// q->setCentralWidget(q);
+	const int x = g_confile->get<int>("main_window_x", "ui", 0);
+	if (const int y = g_confile->get<int>("main_window_y", "ui", 0); !x && !y) {
+		centerWidget(q);
+	} else {
+		q->move(x, y);
+	}
 
-	centerWidget(q);
 
 	m_pCenterWidget = new CUVCenterWidget(q);
 	q->setCentralWidget(m_pCenterWidget);
@@ -41,7 +50,7 @@ void CUVMainWindowPrivate::init() {
 	q->statusBar()->showMessage(tr("No Message!"));
 }
 
-void CUVMainWindowPrivate::initConnect() {
+void CUVMainWindowPrivate::initConnect() { // NOLINT
 }
 
 void CUVMainWindowPrivate::initMenu() {
@@ -52,7 +61,7 @@ void CUVMainWindowPrivate::initMenu() {
 	QToolBar* mediaToolbar = q->addToolBar(tr("&Media"));
 	m_toolBars.push_back(mediaToolbar);
 
-	auto actOpenFile = new QAction(QIcon(":/image/file.png"), tr(" Open File"));
+	const auto actOpenFile = new QAction(QIcon(":/image/file.png"), tr(" Open File"));
 	actOpenFile->setShortcut(QKeySequence("Ctrl+F"));
 	connect(actOpenFile, &QAction::triggered, this, [=]() {
 		q->openMediaDlg(MEDIA_TYPE_FILE);
@@ -60,7 +69,7 @@ void CUVMainWindowPrivate::initMenu() {
 	mediaMenu->addAction(actOpenFile);
 	mediaToolbar->addAction(actOpenFile);
 
-	auto actOpenNetwork = new QAction(QIcon(":/image/network.png"), tr(" Open Network"));
+	const auto actOpenNetwork = new QAction(QIcon(":/image/network.png"), tr(" Open Network"));
 	actOpenNetwork->setShortcut(QKeySequence("Ctrl+N"));
 	connect(actOpenNetwork, &QAction::triggered, this, [=]() {
 		q->openMediaDlg(MEDIA_TYPE_NETWORK);
@@ -68,7 +77,7 @@ void CUVMainWindowPrivate::initMenu() {
 	mediaMenu->addAction(actOpenNetwork);
 	mediaToolbar->addAction(actOpenNetwork);
 
-	auto actOpenCapture = new QAction(QIcon(":/image/capture.png"), tr(" Open Capture"));
+	const auto actOpenCapture = new QAction(QIcon(":/image/capture.png"), tr(" Open Capture"));
 	actOpenCapture->setShortcut(QKeySequence("Ctrl+C"));
 	connect(actOpenCapture, &QAction::triggered, this, [=]() {
 		q->openMediaDlg(MEDIA_TYPE_CAPTURE);
@@ -84,12 +93,12 @@ void CUVMainWindowPrivate::initMenu() {
 	m_toolBars.push_back(viewToolbar);
 
 	QAction* actMVS;
-	auto smMVS = new QSignalMapper(this);
+	const auto smMVS = new QSignalMapper(this);
 #define VISUAL_MV_STYLE(id, row, col, label, image) \
     actMVS = new QAction(QIcon(image), tr(label), this);\
     actMVS->setToolTip(tr(label)); \
     smMVS->setMapping(actMVS, id); \
-    connect( actMVS, SIGNAL(triggered(bool)), smMVS, SLOT(map()) ); \
+    connect(actMVS, &QAction::triggered, smMVS, static_cast<void (QSignalMapper::*)()>(&QSignalMapper::map)); \
     viewMenu->addAction(actMVS); \
     if (row * col <= 16){        \
         viewToolbar->addAction(actMVS); \
@@ -98,7 +107,7 @@ void CUVMainWindowPrivate::initMenu() {
 	FOREACH_MV_STYLE(VISUAL_MV_STYLE)
 #undef VISUAL_MV_STYLE
 
-	connect(smMVS, SIGNAL(mapped(int)), q, SLOT(onMVStyleSelected(int)));
+	connect(smMVS, &QSignalMapper::mappedInt, q, &CUVMainWindow::onMVStyleSelected);
 #endif
 
 	m_pActMvFullScreen = new QAction(tr(" MV Fullscreen F12"));
@@ -116,66 +125,60 @@ void CUVMainWindowPrivate::initMenu() {
 
 	m_pActMenuBar = new QAction(tr(" Menubar F10"));
 	m_pActMenuBar->setCheckable(true);
-	// bool menubar_visible = g_confile->Get<bool>("menubar_visible", "ui", true);
-	bool menubar_visible = true;
+	const bool menubar_visible = g_confile->get<bool>("menubar_visible", "ui", true);
 	m_pActMenuBar->setChecked(menubar_visible);
 	q->menuBar()->setVisible(menubar_visible);
-	connect(m_pActMenuBar, &QAction::triggered, [=](bool check) {
+	connect(m_pActMenuBar, &QAction::triggered, [=](const bool check) {
 		q->menuBar()->setVisible(check);
-		// g_confile->Set<bool>("menubar_visible", check, "ui");
+		g_confile->set<bool>("menubar_visible", check, "ui");
 	});
 	viewMenu->addAction(m_pActMenuBar);
 
-	auto actToolbar = new QAction(tr(" Toolbar"));
+	const auto actToolbar = new QAction(tr(" Toolbar"));
 	actToolbar->setCheckable(true);
-	// bool toolbar_visible = g_confile->Get<bool>("toolbar_visible", "ui", true);
-	bool toolbar_visible = true;
+	const bool toolbar_visible = g_confile->get<bool>("toolbar_visible", "ui", true);
 	actToolbar->setChecked(toolbar_visible);
-	foreach(auto toolbar, m_toolBars) {
+	foreach(const auto& toolbar, m_toolBars) {
 		toolbar->setVisible(toolbar_visible);
 	}
-	connect(actToolbar, &QAction::triggered, [=](bool check) {
-		foreach(auto toolbar, m_toolBars) {
+	connect(actToolbar, &QAction::triggered, [=](const bool check) {
+		foreach(const auto& toolbar, m_toolBars) {
 			toolbar->setVisible(check);
 		}
-		// g_confile->Set<bool>("toolbar_visible", check, "ui");
+		g_confile->set<bool>("toolbar_visible", check, "ui");
 	});
 	viewMenu->addAction(actToolbar);
 
-	auto actStatusbar = new QAction(tr(" Statusbar"));
+	const auto actStatusbar = new QAction(tr(" Statusbar"));
 	actStatusbar->setCheckable(true);
-	// bool statusbar_visible = g_confile->Get<bool>("statusbar_visible", "ui", false);
-	bool statusbar_visible = true;
+	const bool statusbar_visible = g_confile->get<bool>("statusbar_visible", "ui", false);
 	actStatusbar->setChecked(statusbar_visible);
 	q->statusBar()->setVisible(statusbar_visible);
-	connect(actStatusbar, &QAction::triggered, [=](bool check) {
+	connect(actStatusbar, &QAction::triggered, [=](const bool check) {
 		q->statusBar()->setVisible(check);
-		// g_confile->Set<bool>("statusbar_visible", check, "ui");
+		g_confile->set<bool>("statusbar_visible", check, "ui");
 	});
 	viewMenu->addAction(actStatusbar);
 
-	auto actLside = new QAction(tr(" Leftside"));
+	const auto actLside = new QAction(tr(" Leftside"));
 	actLside->setCheckable(true);
-	// bool lside_visible = g_confile->Get<bool>("lside_visible", "ui", false);
-	bool lside_visible = false;
+	const bool lside_visible = g_confile->get<bool>("lside_visible", "ui", false);
 	actLside->setChecked(lside_visible);
 	m_pCenterWidget->lside->setVisible(lside_visible);
-	connect(actLside, &QAction::triggered, [=](bool check) {
+	connect(actLside, &QAction::triggered, [=](const bool check) {
 		m_pCenterWidget->lside->setVisible(check);
-		// g_confile->Set<bool>("lside_visible", check, "ui");
+		g_confile->set<bool>("lside_visible", check, "ui");
 	});
 	viewMenu->addAction(actLside);
 
-	auto actRside = new QAction(tr(" Rightside"));
+	const auto actRside = new QAction(tr(" Rightside"));
 	actRside->setCheckable(true);
-	// bool rside_visible = g_confile->Get<bool>("rside_visible", "ui", false);
-	bool rside_visible = false;
-
+	const bool rside_visible = g_confile->get<bool>("rside_visible", "ui", false);
 	actRside->setChecked(rside_visible);
 	m_pCenterWidget->rside->setVisible(rside_visible);
-	connect(actRside, &QAction::triggered, [=](bool check) {
+	connect(actRside, &QAction::triggered, [=](const bool check) {
 		m_pCenterWidget->rside->setVisible(check);
-		// g_confile->Set<bool>("rside_visible", check, "ui");
+		g_confile->set<bool>("rside_visible", check, "ui");
 	});
 	viewMenu->addAction(actRside);
 
@@ -203,6 +206,8 @@ void CUVMainWindow::about() {
 	strAbout += qVersion();
 	strAbout += "\nFFmpeg version: ";
 	strAbout += av_version_info();
+	strAbout += "\nGLEW version: ";
+	strAbout += QString(reinterpret_cast<const char*>(glewGetString(GLEW_VERSION)));
 	strAbout += "\n\n";
 
 	strAbout += "Copyright 2018-2028 " COMPANY_NAME " Company.\n";
@@ -228,7 +233,7 @@ void CUVMainWindow::fullScreen() {
 	d->m_pActMenuBar->setChecked(menuBar()->isVisible());
 }
 
-void CUVMainWindow::onMVStyleSelected(int id) {
+void CUVMainWindow::onMVStyleSelected(const int id) {
 	Q_D(CUVMainWindow);
 
 	int r, c;
@@ -267,13 +272,13 @@ void CUVMainWindow::mv_fullScreen() {
 	d->m_pActMvFullScreen->setChecked(is_mv_fullscreen);
 }
 
-void CUVMainWindow::openMediaDlg(int index) {
+void CUVMainWindow::openMediaDlg(const int index) {
 	Q_D(CUVMainWindow);
 
 	CUVOpenMediaDlg dlg(this);
-	dlg.tab()->setCurrentIndex(index);
+	dlg.tab->setCurrentIndex(index);
 	if (dlg.exec() == QDialog::Accepted) {
-		d->m_pCenterWidget->mv->play(dlg.media());
+		d->m_pCenterWidget->mv->play(dlg.media);
 	}
 }
 
@@ -319,4 +324,16 @@ void CUVMainWindow::changeEvent(QEvent* event) {
 		}
 		qInfo("window_state=%d", (int) window_state);
 	}
+}
+
+void CUVMainWindow::resizeEvent(QResizeEvent* event) {
+	QMainWindow::resizeEvent(event);
+	g_confile->set<int>("main_window_width", width(), "ui");
+	g_confile->set<int>("main_window_height", height(), "ui");
+}
+
+void CUVMainWindow::moveEvent(QMoveEvent* event) {
+	QMainWindow::moveEvent(event);
+	g_confile->set<int>("main_window_x", x(), "ui");
+	g_confile->set<int>("main_window_y", y(), "ui");
 }

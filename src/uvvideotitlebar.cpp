@@ -2,6 +2,8 @@
 
 #include <QHBoxLayout>
 
+#include <uvfunctions.hpp>
+
 CUVVideoTitlebar::CUVVideoTitlebar(QWidget* parent) : QFrame(parent) {
 	init();
 }
@@ -11,11 +13,15 @@ CUVVideoTitlebar::~CUVVideoTitlebar() = default;
 void CUVVideoTitlebar::init() {
 	setFixedHeight(50);
 
-	m_pLbTitle = new QLabel;
-	m_pBtnClose = new QPushButton(tr("close"), this);
+	labTitle = new QLabel(this);
+	btnClose = getPushButton(QPixmap(":/image/close.png"), tr("Close"), {}, this);
 
 	const auto hbox = new QHBoxLayout;
-	hbox->addWidget(m_pLbTitle);
+	hbox->setContentsMargins(10,1,10,1);
+	hbox->setSpacing(1);
+	hbox->addWidget(labTitle);
 	hbox->addStretch();
-	hbox->addWidget(m_pBtnClose);
+	hbox->addWidget(btnClose);
+
+	setLayout(hbox);
 }

@@ -44,6 +44,7 @@ void CUVBaseDialogPrivate::init() {
 	m_plyHTitle->addSpacerItem(spacerItem);
 	m_plyHTitle->setContentsMargins(0, 0, 6, 0);
 	m_plyHTitle->setSpacing(6);
+
 	m_plyHContent->setContentsMargins(1, 0, 1, 1);
 
 	m_plyVTotal->setContentsMargins(BORDER_SHADOW_WIDTH, BORDER_SHADOW_WIDTH, BORDER_SHADOW_WIDTH, BORDER_SHADOW_WIDTH);
@@ -160,7 +161,8 @@ void CUVBaseDialog::setTitleBtnRole(const TitleButtonRoles emTitleButtonRoles) {
 		connect(pBtn, &QPushButton::clicked, d, &CUVBaseDialogPrivate::switchSize);
 	}
 	if (emTitleButtonRoles & CloseRole) {
-		const QPushButton* pBtn = addTitleButton(CloseRole);
+		QPushButton* pBtn = addTitleButton(CloseRole);
+		pBtn->setObjectName("CUVBaseDialogCloseBtn");
 		connect(pBtn, &QPushButton::clicked, this, &CUVBaseDialog::closeDialog);
 	}
 }

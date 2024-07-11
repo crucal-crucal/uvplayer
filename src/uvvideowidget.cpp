@@ -3,21 +3,22 @@
 #include <QTimer>
 #include <QVBoxLayout>
 
+#include "uvconf.hpp"
 #include "uvcustomeventtype.hpp"
 #include "uvffplayer.hpp"
+#include "uvfunctions.hpp"
 #include "uvopenmediadlg.hpp"
 #include "framelessMessageBox/uvmessagebox.hpp"
 
 #define DEFAULT_RETRY_INTERVAL  10000  // ms
 #define DEFAULT_RETRY_MAXCNT    6
 
-char* duration_fmt(int sec, char* buf) {
-	int h, m, s;
-	m = sec / 60;
-	s = sec % 60;
-	h = m / 60;
+char* duration_fmt(const int sec, char* buf) {
+	int m = sec / 60;
+	const int s = sec % 60;
+	const int h = m / 60;
 	m = m % 60;
-	sprintf(buf, "%02d:%02d:%02d", h, m, s);
+	sprintf(buf, "%02d:%02d:%02d", h, m, s); // NOLINT
 	return buf;
 }
 
@@ -28,9 +29,9 @@ static int64_t gettimeofday_ms() {
 	return value.count();
 }
 
-static int hplayer_event_callback(uvplayer_event_e e, void* userdata) {
+static int uvplayer_event_callback(uvplayer_event_e e, void* userdata) {
 	auto wdg = static_cast<CUVVideoWidget*>(userdata);
-	int custom_event_type = CUVCustomEvent::User;
+	int custom_event_type;
 	switch (e) {
 		case HPLAYER_OPENED:
 			custom_event_type = CUVCustomEvent::OpenMediaSucceed;
@@ -45,10 +46,11 @@ static int hplayer_event_callback(uvplayer_event_e e, void* userdata) {
 			custom_event_type = CUVCustomEvent::PlayerError;
 			break;
 		default:
-			return 0;
+			custom_event_type = CUVCustomEvent::User;
+			break;
 	}
 
-	QApplication::postEvent(wdg, new QEvent((QEvent::Type) custom_event_type));
+	QApplication::postEvent(wdg, new QEvent(static_cast<QEvent::Type>(custom_event_type)));
 	return 0;
 }
 
@@ -56,9 +58,16 @@ CUVVideoWidget::CUVVideoWidget(QWidget* parent) : QFrame(parent) {
 	playerid = 0;
 	status = STOP;
 	pImpl_player = nullptr;
-	fps = 0;
-	aspect_ratio.type = ASPECT_FULL;
+	fps = g_confile->get<int>("fps", "video");
 
+	std::string str = g_confile->getValue("aspect_ratio", "video");
+	initAspectRatio(str);
+
+	// retry
+	retry_interval = g_confile->get<int>("retry_interval", "video", DEFAULT_RETRY_INTERVAL);
+	retry_maxcnt = g_confile->get<int>("retry_maxcnt", "video", DEFAULT_RETRY_MAXCNT);
+	last_retry_time = 0;
+	retry_cnt = 0;
 	init();
 	initConnect();
 }
@@ -67,7 +76,7 @@ CUVVideoWidget::~CUVVideoWidget() {
 	close();
 }
 
-void CUVVideoWidget::open(CUVMedia& media) {
+void CUVVideoWidget::open(const CUVMedia& media) {
 	this->media = media;
 	start();
 }
@@ -79,7 +88,7 @@ void CUVVideoWidget::close() {
 	updateUI();
 }
 
-void CUVVideoWidget::start() {
+void CUVVideoWidget::start() { // NOLINT
 	if (media.type == MEDIA_TYPE_NONE) {
 		UVMessageBox::CUVMessageBox::information(this, tr("Info"), tr("Please first set media source, then start."));
 		updateUI();
@@ -89,7 +98,7 @@ void CUVVideoWidget::start() {
 	if (!pImpl_player) {
 		pImpl_player = new CUVFFPlayer;
 		pImpl_player->set_media(media);
-		pImpl_player->set_event_callback(hplayer_event_callback, this);
+		pImpl_player->set_event_callback(uvplayer_event_callback, this);
 		title = media.src.c_str();
 		int ret = pImpl_player->start();
 		if (ret != 0) {
@@ -144,7 +153,7 @@ void CUVVideoWidget::resume() {
 	}
 }
 
-void CUVVideoWidget::restart() {
+void CUVVideoWidget::restart() { // NOLINT
 	std::cout << "restart..." << std::endl;
 	if (pImpl_player) {
 		pImpl_player->stop();
@@ -154,7 +163,7 @@ void CUVVideoWidget::restart() {
 	}
 }
 
-void CUVVideoWidget::retry() {
+void CUVVideoWidget::retry() { // NOLINT
 	if (retry_maxcnt < 0 || retry_cnt < retry_maxcnt) {
 		++retry_cnt;
 		int64_t cur_time = gettimeofday_ms();
@@ -167,24 +176,22 @@ void CUVVideoWidget::retry() {
 			if (pImpl_player) {
 				pImpl_player->stop();
 			}
-			int retry_after = retry_interval - timespan;
-			// hlogi("retry after %dms", retry_after);
-			QTimer::singleShot(retry_after, this, SLOT(restart()));
+			int retry_after = retry_interval - timespan; // NOLINT
+			QTimer::singleShot(retry_after, this, &CUVVideoWidget::restart);
 		}
 	} else {
 		stop();
 	}
 }
 
-void CUVVideoWidget::onTimerUpdate() {
+void CUVVideoWidget::onTimerUpdate() const {
 	if (!pImpl_player) return;
 
 	if (pImpl_player->pop_frame(&videownd->last_frame) == 0) {
 		// update progress bar
 		if (toolbar->sldProgress()->isVisible()) {
-			int progress = (videownd->last_frame.ts - pImpl_player->start_time) / 1000;
-			if (toolbar->sldProgress()->value() != progress &&
-			    !toolbar->sldProgress()->isSliderDown()) {
+			int progress = (videownd->last_frame.ts - pImpl_player->start_time) / 1000; // NOLINT
+			if (toolbar->sldProgress()->value() != progress && !toolbar->sldProgress()->isSliderDown()) {
 				toolbar->sldProgress()->setValue(progress);
 			}
 		}
@@ -198,7 +205,7 @@ void CUVVideoWidget::onOpenSucceed() {
 	status = PLAY;
 	setAspectRatio(aspect_ratio);
 	if (pImpl_player->duration > 0) {
-		int duration_sec = pImpl_player->duration / 1000;
+		int duration_sec = pImpl_player->duration / 1000; // NOLINT
 		char szTime[16];
 		duration_fmt(duration_sec, szTime);
 		toolbar->lblDuration()->setText(szTime);
@@ -212,7 +219,7 @@ void CUVVideoWidget::onOpenSucceed() {
 	}
 }
 
-void CUVVideoWidget::onOpenFailed() {
+void CUVVideoWidget::onOpenFailed() { // NOLINT
 	if (retry_cnt == 0) {
 		UVMessageBox::CUVMessageBox::critical(this, tr("ERROR"), tr("Could not open media: \n") +
 		                                                         media.src.c_str() +
@@ -230,12 +237,12 @@ void CUVVideoWidget::onPlayerEOF() {
 			retry();
 			break;
 		case MEDIA_TYPE_FILE:
-			// if (g_confile->Get<bool>("loop_playback", "video")) {
-			// 	restart();
-			// } else {
-			// 	stop();
-			// }
-			// break;
+			if (g_confile->get<bool>("loop_playback", "video")) {
+				restart();
+			} else {
+				stop();
+			}
+			break;
 		default:
 			stop();
 			break;
@@ -253,7 +260,7 @@ void CUVVideoWidget::onPlayerError() {
 	}
 }
 
-void CUVVideoWidget::setAspectRatio(aspect_ratio_t aspect_ratio) {
+void CUVVideoWidget::setAspectRatio(const aspect_ratio_t& aspect_ratio) {
 	this->aspect_ratio = aspect_ratio;
 	int border = 1;
 	int scr_w = width() - border * 2;
@@ -288,19 +295,19 @@ void CUVVideoWidget::setAspectRatio(aspect_ratio_t aspect_ratio) {
 			break;
 		case ASPECT_ORIGINAL_RATIO:
 		case ASPECT_CUSTOM_RATIO: {
-			double scr_ratio = (double) scr_w / (double) scr_h;
-			double dst_ratio = 1.0;
+			double scr_ratio = static_cast<double>(scr_w) / static_cast<double>(scr_h);
+			double dst_ratio;
 			if (aspect_ratio.type == ASPECT_CUSTOM_RATIO) {
-				dst_ratio = (double) aspect_ratio.w / (double) aspect_ratio.h;
+				dst_ratio = static_cast<double>(aspect_ratio.w) / static_cast<double>(aspect_ratio.h);
 			} else {
-				dst_ratio = (double) pic_w / (double) pic_h;
+				dst_ratio = static_cast<double>(pic_w) / static_cast<double>(pic_h);
 			}
 			if (dst_ratio > scr_ratio) {
 				dst_w = scr_w;
-				dst_h = scr_w / dst_ratio;
+				dst_h = scr_w / dst_ratio; // NOLINT
 			} else {
 				dst_h = scr_h;
-				dst_w = scr_h * dst_ratio;
+				dst_w = scr_h * dst_ratio; // NOLINT
 			}
 		}
 		break;
@@ -322,9 +329,11 @@ void CUVVideoWidget::init() {
 	videownd = new CUVGLWnd(this);
 	titlebar = new CUVVideoTitlebar(this);
 	toolbar = new CUVVideoToolbar(this);
-	btnMedia = new QPushButton(tr("Open media"), this);
+	btnMedia = getPushButton(QPixmap(":/image/media_bk.png"), tr("Open media"), {}, this);
 
 	auto vbox = new QVBoxLayout;
+	vbox->setContentsMargins(1, 1, 1, 1);
+	vbox->setSpacing(1);
 
 	vbox->addWidget(titlebar, 0, Qt::AlignTop);
 	vbox->addWidget(btnMedia, 0, Qt::AlignCenter);
@@ -340,14 +349,14 @@ void CUVVideoWidget::initConnect() {
 	connect(btnMedia, &QPushButton::clicked, [this] {
 		CUVOpenMediaDlg dlg(this);
 		if (dlg.exec() == QDialog::Accepted) {
-			open(dlg.media());
+			open(dlg.media);
 		}
 	});
-	connect(titlebar->btnClose(), SIGNAL(clicked(bool)), this, SLOT(close()));
+	connect(titlebar->btnClose, &QPushButton::clicked, this, &CUVVideoWidget::close);
 
-	connect(toolbar, SIGNAL(sigStart()), this, SLOT(start()));
-	connect(toolbar, SIGNAL(sigPause()), this, SLOT(pause()));
-	connect(toolbar, SIGNAL(sigStop()), this, SLOT(stop()));
+	connect(toolbar, &CUVVideoToolbar::sigStart, this, &CUVVideoWidget::start);
+	connect(toolbar, &CUVVideoToolbar::sigPause, this, &CUVVideoWidget::pause);
+	connect(toolbar, &CUVVideoToolbar::sigStop, this, &CUVVideoWidget::stop);
 	connect(toolbar->sldProgress(), &QSlider::sliderReleased, [this]() {
 		if (pImpl_player) {
 			pImpl_player->seek(toolbar->sldProgress()->value() * 1000);
@@ -356,11 +365,11 @@ void CUVVideoWidget::initConnect() {
 
 	timer = new QTimer(this);
 	timer->setTimerType(Qt::PreciseTimer);
-	connect(timer, SIGNAL(timeout()), this, SLOT(onTimerUpdate()));
+	connect(timer, &QTimer::timeout, this, &CUVVideoWidget::onTimerUpdate);
 }
 
 void CUVVideoWidget::updateUI() const {
-	titlebar->labTitle()->setText(QString::asprintf("%02d ", playerid) + title);
+	titlebar->labTitle->setText(QString::asprintf("%02d ", playerid) + title);
 
 	toolbar->btnStart()->setVisible(status != PLAY);
 	toolbar->btnPause()->setVisible(status == PLAY);
@@ -370,6 +379,65 @@ void CUVVideoWidget::updateUI() const {
 	if (status == STOP) {
 		toolbar->sldProgress()->hide();
 		toolbar->lblDuration()->hide();
+	}
+}
+
+void CUVVideoWidget::initAspectRatio(const std::string& str) {
+	aspect_ratio.type = ASPECT_FULL; // Default type
+	const auto c_str = str.c_str();
+
+	if (str.empty() || strcmp(c_str, "100%") == 0) { // NOLINT
+		aspect_ratio.type = ASPECT_FULL;
+	} else if (_stricmp(c_str, "w:h") == 0) {
+		aspect_ratio.type = ASPECT_ORIGINAL_RATIO;
+	} else if (_stricmp(c_str, "wxh") == 0 || _stricmp(c_str, "w*h") == 0) {
+		aspect_ratio.type = ASPECT_ORIGINAL_SIZE;
+	} else if (strchr(c_str, '%')) {
+		int percent = 0;
+		sscanf_s(c_str, "%d%%", &percent);
+		if (percent) {
+			aspect_ratio.type = ASPECT_PERCENT;
+			aspect_ratio.w = percent;
+			aspect_ratio.h = percent;
+		}
+	} else if (strchr(c_str, ':')) {
+		int w = 0;
+		int h = 0;
+		sscanf_s(c_str, "%d:%d", &w, &h);
+		if (w && h) {
+			aspect_ratio.type = ASPECT_CUSTOM_RATIO;
+			aspect_ratio.w = w;
+			aspect_ratio.h = h;
+		}
+	} else if (strchr(c_str, 'x')) {
+		int w = 0;
+		int h = 0;
+		sscanf_s(c_str, "%dx%d", &w, &h);
+		if (w && h) {
+			aspect_ratio.type = ASPECT_CUSTOM_SIZE;
+			aspect_ratio.w = w;
+			aspect_ratio.h = h;
+		}
+	} else if (strchr(c_str, 'X')) {
+		int w = 0;
+		int h = 0;
+		sscanf_s(c_str, "%dX%d", &w, &h);
+		if (w && h) {
+			aspect_ratio.type = ASPECT_CUSTOM_SIZE;
+			aspect_ratio.w = w;
+			aspect_ratio.h = h;
+		}
+	} else if (strchr(c_str, '*')) {
+		int w = 0;
+		int h = 0;
+		sscanf_s(c_str, "%d*%d", &w, &h);
+		if (w && h) {
+			aspect_ratio.type = ASPECT_CUSTOM_SIZE;
+			aspect_ratio.w = w;
+			aspect_ratio.h = h;
+		}
+	} else {
+		aspect_ratio.type = ASPECT_FULL;
 	}
 }
 

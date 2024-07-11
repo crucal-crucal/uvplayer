@@ -1,5 +1,9 @@
 #include "uvglwnd.hpp"
 
+#include <sstream>
+#include <iomanip>
+#include <QPainter>
+
 CUVGLWnd::CUVGLWnd(QWidget* parent) : CUVVideoWnd(parent), CUVGLWidget(parent) {
 }
 
@@ -13,22 +17,23 @@ void CUVGLWnd::Update() {
 	update();
 }
 
+/**
+ * @note: 帧绘制、时间、FPS和分辨率的绘制
+ */
 void CUVGLWnd::paintGL() {
 	calcFPS();
 	CUVGLWidget::paintGL();
 
 	if (last_frame.isNull()) {
-		/*
-		QPoint pt = rect().center() - QPoint(80, -10);
-		drawText(pt, "NO VIDEO", 16, Qt::white);
-
-		QPainter painter(this);
-		QPixmap pixmap(":/image/media_bk.png");
-		int w = pixmap.width();
-		int h = pixmap.height();
-		QRect rc((width()-w)/2, (height()-h)/2, w, h);
-		painter.drawPixmap(rc, pixmap);
-		*/
+		// QPoint pt = rect().center() - QPoint(80, -10);
+		// drawText(pt, "NO VIDEO", 16, Qt::white);
+		//
+		// QPainter painter(this);
+		// QPixmap pixmap(":/image/media_bk.png");
+		// int w = pixmap.width();
+		// int h = pixmap.height();
+		// QRect rc((width() - w) / 2, (height() - h) / 2, w, h);
+		// painter.drawPixmap(rc, pixmap);
 	} else {
 		drawFrame(&last_frame);
 		if (draw_time) {
@@ -44,31 +49,36 @@ void CUVGLWnd::paintGL() {
 }
 
 void CUVGLWnd::drawTime() {
-	char szTime[12];
-	int sec = last_frame.ts / 1000;
+	std::ostringstream oss;
+	int sec = last_frame.ts / 1000; // NOLINT
 	int h, m, s;
 	m = sec / 60;
 	s = sec % 60;
 	h = m / 60;
 	m = m % 60;
-	sprintf(szTime, "%02d:%02d:%02d", h, m, s);
+	oss << std::setfill('0') << std::setw(2) << h << ":"
+			<< std::setfill('0') << std::setw(2) << m << ":"
+			<< std::setfill('0') << std::setw(2) << s;
+	std::string szTime = oss.str();
 	// Left Top
 	QPoint pt(10, 40);
-	drawText(pt, szTime, 14, Qt::white);
+	drawText(pt, szTime.c_str(), 14, Qt::white);
 }
 
 void CUVGLWnd::drawFPS() {
-	char szFPS[16];
-	sprintf(szFPS, "FPS:%d", fps);
+	std::ostringstream oss;
+	oss << "FPS:" << fps;
+	std::string szFPS = oss.str();
 	// Right Top
 	QPoint pt(width() - 100, 40);
-	drawText(pt, szFPS, 14, Qt::blue);
+	drawText(pt, szFPS.c_str(), 14, Qt::blue);
 }
 
 void CUVGLWnd::drawResolution() {
-	char szResolution[16];
-	sprintf(szResolution, "%d X %d", last_frame.w, last_frame.h);
+	std::ostringstream oss;
+	oss << last_frame.w << " X " << last_frame.h;
+	std::string szResolution = oss.str();
 	// Left Bottom
 	QPoint pt(10, height() - 10);
-	drawText(pt, szResolution, 14, Qt::blue);
+	drawText(pt, szResolution.c_str(), 14, Qt::blue);
 }

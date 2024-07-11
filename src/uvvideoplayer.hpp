@@ -60,11 +60,11 @@ public:
 		decode_mode = mode;
 	}
 
-	FrameStats get_frame_stats() {
+	[[nodiscard]] FrameStats get_frame_stats() const {
 		return frame_buf.frame_stats;
 	}
 
-	FrameInfo get_frame_info() {
+	[[nodiscard]] FrameInfo get_frame_info() const {
 		return frame_buf.frame_info;
 	}
 

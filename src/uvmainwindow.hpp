@@ -34,4 +34,6 @@ protected:
 
 	void keyPressEvent(QKeyEvent* event) override;
 	void changeEvent(QEvent*) override;
+	void resizeEvent(QResizeEvent* event) override;
+	void moveEvent(QMoveEvent* event) override;
 };

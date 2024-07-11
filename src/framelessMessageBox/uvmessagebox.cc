@@ -100,8 +100,6 @@ QMessageBox::ButtonRole CUVMessageBox::question(QWidget* parent, const QString& 
                                                 const QMessageBox::StandardButtons buttons,
                                                 [[maybe_unused]] const QMessageBox::StandardButton defaultButton) {
 	CUVMessageBox messageBox(QMessageBox::Question, title, text, buttons, parent);
-	messageBox.d_ptr->m_pMessageBox->button(QMessageBox::Yes)->setText(tr("Yes"));
-	messageBox.d_ptr->m_pMessageBox->button(QMessageBox::No)->setText(tr("No"));
 	return static_cast<QMessageBox::ButtonRole>(messageBox.exec());
 }
 
@@ -109,7 +107,6 @@ QMessageBox::ButtonRole CUVMessageBox::warning(QWidget* parent, const QString& t
                                                const QMessageBox::StandardButtons buttons,
                                                [[maybe_unused]] const QMessageBox::StandardButton defaultButton) {
 	CUVMessageBox messageBox(QMessageBox::Warning, title, text, buttons, parent);
-	messageBox.d_ptr->m_pMessageBox->button(QMessageBox::Ok)->setText(tr("OK"));
 	return static_cast<QMessageBox::ButtonRole>(messageBox.exec());
 }
 
@@ -117,7 +114,6 @@ QMessageBox::ButtonRole CUVMessageBox::critical(QWidget* parent, const QString& 
                                                 const QMessageBox::StandardButtons buttons,
                                                 [[maybe_unused]] const QMessageBox::StandardButton defaultButton) {
 	CUVMessageBox messageBox(QMessageBox::Critical, title, text, buttons, parent);
-	messageBox.d_ptr->m_pMessageBox->button(QMessageBox::Ok)->setText(tr("OK"));
 	return static_cast<QMessageBox::ButtonRole>(messageBox.exec());
 }
 

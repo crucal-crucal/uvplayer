@@ -55,17 +55,13 @@ public:
 	explicit CUVOpenMediaDlg(QWidget* parent = nullptr);
 	~CUVOpenMediaDlg() override;
 
-	CUVMedia& media() { return m_media; }
-
-	QTabWidget* tab() { return m_pTab; }
-
 public slots:
 	void accept() override;
 
 protected:
 	void init();
 
-private:
-	QTabWidget* m_pTab{ nullptr };
-	CUVMedia m_media{};
+public:
+	QTabWidget* tab{ nullptr };
+	CUVMedia media{};
 };

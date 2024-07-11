@@ -7,7 +7,7 @@
 #include "uvvideotitlebar.hpp"
 #include "uvvideotoolbar.hpp"
 
-class CUVVideoWidget : public QFrame {
+class CUVVideoWidget final : public QFrame {
 	Q_OBJECT
 
 public:
@@ -21,7 +21,7 @@ public:
 	~CUVVideoWidget() override;
 
 public slots:
-	void open(CUVMedia& media);
+	void open(const CUVMedia& media);
 	void close(); // NOLINT
 
 	void start();
@@ -31,18 +31,19 @@ public slots:
 	void restart();
 	void retry();
 
-	void onTimerUpdate();
+	void onTimerUpdate() const;
 	void onOpenSucceed();
 	void onOpenFailed();
 	void onPlayerEOF();
 	void onPlayerError();
 
-	void setAspectRatio(aspect_ratio_t aspect_ratio);
+	void setAspectRatio(const aspect_ratio_t& aspect_ratio);
 
 protected:
 	void init();
 	void initConnect();
 	void updateUI() const;
+	void initAspectRatio(const std::string& str);
 
 	void resizeEvent(QResizeEvent* e) override;
 	void enterEvent(QEvent* e) override;
@@ -53,26 +54,26 @@ protected:
 	void customEvent(QEvent* e) override;
 
 public:
-	int playerid;
-	int status;
-	QString title;
-	int fps;
-	aspect_ratio_t aspect_ratio;
+	int playerid{};
+	int status{};
+	QString title{};
+	int fps{};
+	aspect_ratio_t aspect_ratio{};
 
-	CUVGLWnd* videownd;
-	CUVVideoTitlebar* titlebar;
-	CUVVideoToolbar* toolbar;
-	QPushButton* btnMedia;
+	CUVGLWnd* videownd{ nullptr };
+	CUVVideoTitlebar* titlebar{ nullptr };
+	CUVVideoToolbar* toolbar{ nullptr };
+	QPushButton* btnMedia{ nullptr };
 
 private:
-	QPoint ptMousePress;
-	QTimer* timer;
+	QPoint ptMousePress{};
+	QTimer* timer{ nullptr };
 
-	CUVMedia media;
-	CUVVideoPlayer* pImpl_player;
+	CUVMedia media{};
+	CUVVideoPlayer* pImpl_player{ nullptr };
 	// for retry when SIGNAL_END_OF_FILE
-	int retry_interval;
-	int retry_maxcnt;
-	int64_t last_retry_time;
-	int retry_cnt;
+	int retry_interval{};
+	int retry_maxcnt{};
+	int64_t last_retry_time{};
+	int retry_cnt{};
 };

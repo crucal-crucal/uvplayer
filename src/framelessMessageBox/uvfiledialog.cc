@@ -66,7 +66,7 @@ void CUVFileBasePrivate::init(const QString& strRegisterName, const QString& cap
 	q->setContent(m_pFileDialog);
 
 	// 恢复之前的状态
-	const QSettings fileDialogState("crucal", "C_Patch_management");
+	const QSettings fileDialogState("crucal", "uvplayer");
 	const QByteArray byHistoryState = QByteArray::fromBase64(
 		fileDialogState.value(QString("client/%1").arg(m_strRegisterName)).toByteArray()
 	);
@@ -89,7 +89,7 @@ CUVFileBase::~CUVFileBase() {
 	Q_D(CUVFileBase);
 
 	if (!d->m_strRegisterName.isEmpty()) {
-		QSettings fileDialogState("crucal", "C_Patch_management");
+		QSettings fileDialogState("crucal", "uvplayer");
 		const QByteArray byState = d->m_pFileDialog->saveState().toBase64();
 		fileDialogState.setValue(QString("client/%1").arg(d->m_strRegisterName), byState);
 	}
@@ -195,6 +195,7 @@ QString CUVFileBase::getOpenFileName(QString* selectedFilter, const QFileDialog:
 	Q_D(CUVFileBase);
 
 	d->m_pFileDialog->setOptions(options | d->m_pFileDialog->options());
+	d->m_pFileDialog->setFileMode(QFileDialog::ExistingFiles);
 	if (selectedFilter) {
 		d->m_pFileDialog->selectNameFilter(*selectedFilter);
 	}
@@ -376,63 +377,63 @@ CUVFileDialog::~CUVFileDialog() = default;
 QString CUVFileDialog::getOpenFileName(QWidget* parent, const QString& caption, const QString& dir,
                                        const QString& filter, QString* selectedFilter,
                                        const QFileDialog::Options options) {
-	CUVFileBase file_base(tr("C_Patch_management"), parent, caption, dir, filter);
+	CUVFileBase file_base(tr("uvplayer"), parent, caption, dir, filter);
 	return file_base.getOpenFileName(selectedFilter, options);
 }
 
 QUrl CUVFileDialog::getOpenFileUrl(QWidget* parent, const QString& caption, const QUrl& dir, const QString& filter,
                                    QString* selectedFilter, const QFileDialog::Options options,
                                    const QStringList& supportedSchemes) {
-	CUVFileBase file_base(tr("C_Patch_management"), parent, caption, "", filter);
+	CUVFileBase file_base(tr("uvplayer"), parent, caption, "", filter);
 	return file_base.getOpenFileUrl(dir, selectedFilter, options, supportedSchemes);
 }
 
 QString CUVFileDialog::getSaveFileName(QWidget* parent, const QString& caption, const QString& dir, const QString& filter,
                                        QString* selectedFilter, const QFileDialog::Options options) {
-	CUVFileBase file_base(tr("C_Patch_management"), parent, caption, dir, filter);
+	CUVFileBase file_base(tr("uvplayer"), parent, caption, dir, filter);
 	return file_base.getSaveFileName(selectedFilter, options);
 }
 
 QUrl CUVFileDialog::getSaveFileUrl(QWidget* parent, const QString& caption, const QUrl& dir, const QString& filter,
                                    QString* selectedFilter, const QFileDialog::Options options,
                                    const QStringList& supportedSchemes) {
-	CUVFileBase file_base(tr("C_Patch_management"), parent, caption, "", filter);
+	CUVFileBase file_base(tr("uvplayer"), parent, caption, "", filter);
 	return file_base.getSaveFileUrl(dir, selectedFilter, options, supportedSchemes);
 }
 
 QString CUVFileDialog::getExistingDirectory(QWidget* parent, const QString& caption, const QString& dir,
                                             const QFileDialog::Options options) {
-	CUVFileBase file_base(tr("C_Patch_management"), parent, caption, dir);
+	CUVFileBase file_base(tr("uvplayer"), parent, caption, dir);
 	return file_base.getExistingDirectory(options);
 }
 
 QUrl CUVFileDialog::getExistingDirectoryUrl(QWidget* parent, const QString& caption, const QUrl& dir,
                                             const QFileDialog::Options options, const QStringList& supportedSchemes) {
-	CUVFileBase file_base(tr("C_Patch_management"), parent, caption);
+	CUVFileBase file_base(tr("uvplayer"), parent, caption);
 	return file_base.getExistingDirectoryUrl(dir, options, supportedSchemes);
 }
 
 QStringList CUVFileDialog::getOpenFileNames(QWidget* parent, const QString& caption, const QString& dir, const QString& filter,
                                             QString* selectedFilter, const QFileDialog::Options options) {
-	CUVFileBase file_base(tr("C_Patch_management"), parent, caption, dir, filter);
+	CUVFileBase file_base(tr("uvplayer"), parent, caption, dir, filter);
 	return file_base.getOpenFileNames(selectedFilter, options);
 }
 
 QList<QUrl> CUVFileDialog::getOpenFileUrls(QWidget* parent, const QString& caption, const QUrl& dir, const QString& filter,
                                            QString* selectedFilter, const QFileDialog::Options options,
                                            const QStringList& supportedSchemes) {
-	CUVFileBase file_base(tr("C_Patch_management"), parent, caption, "", filter);
+	CUVFileBase file_base(tr("uvplayer"), parent, caption, "", filter);
 	return file_base.getOpenFileUrls(dir, selectedFilter, options, supportedSchemes);
 }
 
 void CUVFileDialog::getOpenFileContent(const QString& nameFilter,
                                        const std::function<void(const QString&, const QByteArray&)>&
                                        fileContentsReady) {
-	CUVFileBase file_base(tr("C_Patch_management"));
+	CUVFileBase file_base(tr("uvplayer"));
 	return file_base.getOpenFileContent(nameFilter, fileContentsReady);
 }
 
 void CUVFileDialog::saveFileContent(const QByteArray& fileContent, const QString& fileNameHint) {
-	CUVFileBase file_base(tr("C_Patch_management"));
+	CUVFileBase file_base(tr("uvplayer"));
 	return file_base.saveFileContent(fileContent, fileNameHint);
 }

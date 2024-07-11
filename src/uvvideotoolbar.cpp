@@ -2,6 +2,8 @@
 
 #include <QHBoxLayout>
 
+#include "uvfunctions.hpp"
+
 CUVVideoToolbar::CUVVideoToolbar(QWidget* parent) : QFrame(parent) {
 	init();
 	initConnect();
@@ -12,24 +14,24 @@ CUVVideoToolbar::~CUVVideoToolbar() = default;
 void CUVVideoToolbar::init() {
 	setFixedHeight(50);
 
-	QSize sz(48, 48);
-	m_pBtnStart = new QPushButton(QPixmap(":/image/start.png"), tr("start"));
-	m_pBtnPause = new QPushButton(QPixmap(":/image/pause.png"), tr("pause"));
+	m_pBtnStart = getPushButton(QPixmap(":/image/start.png"), tr("start"), {}, this);
+	m_pBtnPause = getPushButton(QPixmap(":/image/pause.png"), tr("pause"), {}, this);
 
 	m_pBtnStart->setShortcut(Qt::Key_Space);
 	m_pBtnPause->setShortcut(Qt::Key_Space);
 
 
-	m_pBtnPrev = new QPushButton(QPixmap(":/image/prev.png"), tr("prev"));
-	m_pBtnStop = new QPushButton(QPixmap(":/image/stop.png"), tr("stop"));
+	m_pBtnPrev = getPushButton(QPixmap(":/image/prev.png"), tr("prev"), {}, this);
+	m_pBtnStop = getPushButton(QPixmap(":/image/stop.png"), tr("stop"), {}, this);
 	m_pBtnStop->setAutoDefault(true);
-	m_pBtnNext = new QPushButton(QPixmap(":/image/next.png"), tr("next"));
+	m_pBtnNext = getPushButton(QPixmap(":/image/next.png"), tr("next"), {}, this);
 
 	m_pSldProgress = new QSlider;
 	m_pSldProgress->setOrientation(Qt::Horizontal);
 	m_pLbDuration = new QLabel("00:00:00");
 
-	auto hbox = new QHBoxLayout;
+	const auto hbox = new QHBoxLayout;
+	hbox->setContentsMargins(10,1,10,1);
 	hbox->setSpacing(5);
 	hbox->addWidget(m_pBtnStart, 0, Qt::AlignLeft);
 	hbox->addWidget(m_pBtnPause, 0, Qt::AlignLeft);
@@ -53,16 +55,16 @@ void CUVVideoToolbar::init() {
 }
 
 void CUVVideoToolbar::initConnect() {
-	QObject::connect(m_pBtnStart, SIGNAL(clicked(bool)), m_pBtnStart, SLOT(hide()));
-	QObject::connect(m_pBtnStart, SIGNAL(clicked(bool)), m_pBtnPause, SLOT(show()));
+	connect(m_pBtnStart, &QPushButton::clicked, m_pBtnStart, &QPushButton::hide);
+	connect(m_pBtnStart, &QPushButton::clicked, m_pBtnPause, &QPushButton::show);
 
-	QObject::connect(m_pBtnPause, SIGNAL(clicked(bool)), m_pBtnPause, SLOT(hide()));
-	QObject::connect(m_pBtnPause, SIGNAL(clicked(bool)), m_pBtnStart, SLOT(show()));
+	connect(m_pBtnPause, &QPushButton::clicked, m_pBtnPause, &QPushButton::hide);
+	connect(m_pBtnPause, &QPushButton::clicked, m_pBtnStart, &QPushButton::show);
 
-	connect(m_pBtnStart, SIGNAL(clicked(bool)), this, SIGNAL(sigStart()));
-	connect(m_pBtnPause, SIGNAL(clicked(bool)), this, SIGNAL(sigPause()));
-	connect(m_pBtnStop, SIGNAL(clicked(bool)), this, SIGNAL(sigStop()));
+	connect(m_pBtnStart, &QPushButton::clicked, this, &CUVVideoToolbar::sigStart);
+	connect(m_pBtnPause, &QPushButton::clicked, this, &CUVVideoToolbar::sigPause);
+	connect(m_pBtnStop, &QPushButton::clicked, this, &CUVVideoToolbar::sigStop);
 
-	connect(m_pBtnStop, SIGNAL(clicked(bool)), m_pBtnStart, SLOT(show()));
-	connect(m_pBtnStop, SIGNAL(clicked(bool)), m_pBtnPause, SLOT(hide()));
+	connect(m_pBtnStop, &QPushButton::clicked, m_pBtnStart, &QPushButton::show);
+	connect(m_pBtnStop, &QPushButton::clicked, m_pBtnPause, &QPushButton::hide);
 }

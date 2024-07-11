@@ -5,6 +5,10 @@
 #include <QApplication>
 #include <QDesktopWidget>
 
+#ifdef Q_OS_WIN
+#include <Windows.h>
+#endif
+
 //----------------mutable-----------------------
 #define LSIDE_VISIBLE       false
 #define RSIDE_VISIBLE       false

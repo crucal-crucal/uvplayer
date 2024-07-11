@@ -29,7 +29,6 @@ add_executable(${PROJECT_NAME} main.cpp
         uvmainwindow_p.hpp
         uvcenterwidget.cpp
         uvcenterwidget.hpp
-        uvcenterwidget_p.hpp
         uvmultiview.cpp
         uvmultiview.hpp
         uvmultiview_p.hpp
@@ -63,11 +62,22 @@ add_executable(${PROJECT_NAME} main.cpp
         uvglwnd.cpp
         uvglwnd.hpp
         uvdef.hpp
+        uviniparser.cpp
+        uviniparser.hpp
+        uvfile.hpp
+        uverr.hpp
+        uvstring/uvstring.cpp
+        uvstring/uvstring.hpp
+        auvexport.hpp
+        uvconf.hpp
+        uvbase.hpp
+        uvdevice.hpp
+        uvfunctions.hpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE src/GL)
 # Qt
-target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::OpenGL)
+target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::OpenGL Qt5::Multimedia)
 # OpenGL & GLEW
 target_compile_definitions(${PROJECT_NAME} PRIVATE -DGLEW_STATIC)
 target_link_libraries(${PROJECT_NAME}
@@ -80,11 +90,13 @@ target_link_libraries(${PROJECT_NAME} ${FFMPEG_LIBS})
 target_link_libraries(${PROJECT_NAME}
         logger
         framelessMessageBox
+        uvstring
 )
 
 
 add_subdirectory(logger)
 add_subdirectory(framelessMessageBox)
+add_subdirectory(uvstring)
 
 install(TARGETS ${PROJECT_NAME}
         RUNTIME DESTINATION bin
@@ -102,9 +114,17 @@ if (WIN32)
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${GLEW_DLLS}
             $<TARGET_FILE_DIR:${PROJECT_NAME}>
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${CMAKE_SOURCE_DIR}/resource/uvplayer.rcc
-            $<TARGET_FILE_DIR:${PROJECT_NAME}>
-            COMMENT "Copying ffmpeg dlls, glew dlls, resource file, style and translation directories to output directory"
+            COMMENT "Copying ffmpeg dlls, glew dlls to output directory"
     )
 endif ()
+
+# copy rcc, config files to output directory
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_SOURCE_DIR}/resource/uvplayer.rcc
+        $<TARGET_FILE_DIR:${PROJECT_NAME}>
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${CMAKE_SOURCE_DIR}/bin/conf/uvplayer.conf.default
+        $<TARGET_FILE_DIR:${PROJECT_NAME}>/conf/uvplayer.conf.default
+        COMMENT "Copying rcc file to output directory"
+)

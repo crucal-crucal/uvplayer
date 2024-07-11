@@ -1,7 +1,7 @@
 #pragma once
 
 // Must be included before any Qt header
-#include "glew.h"
+#include "GL/glew.h"
 
 #include <atomic>
 #include <QOpenGLWidget>
@@ -20,10 +20,10 @@ public:
 	// ratio = 0 means spread
 	void setAspectRatio(double ratio);
 
-	void drawFrame(CUVFrame* pFrame);
-	void drawTexture(CUVRect rc, GLTexture* tex);
-	void drawRect(CUVRect rc, CUVColor clr, int line_width = 1, bool bFill = false);
-	void drawText(QPoint lb, const char* text, int fontsize, QColor clr);
+	void drawFrame(const CUVFrame* pFrame) const;
+	void drawTexture(const CUVRect& rc, const GLTexture* tex) const;
+	void drawRect(const CUVRect& rc, CUVColor clr, int line_width = 1, bool bFill = false) const;
+	void drawText(const QPoint& lb, const char* text, int fontsize, const QColor& clr);
 
 protected:
 	void initializeGL() override;
@@ -31,13 +31,15 @@ protected:
 	void paintGL() override;
 
 	void setVertices(double ratio);
-	void setVertices(QRect rc);
+	void setVertices(const QRect& rc);
 
 	static void loadYUVShader();
-	void initVAO();
+	void initVAO() const;
 	void initYUV();
+	static void checkShaderCompileStatus(GLuint shader, const std::string& name);
+	static void checkProgramLinkStatus(GLuint program);
 
-	void drawYUV(CUVFrame* pFrame);
+	void drawYUV(const CUVFrame* pFrame) const;
 
 	static std::atomic_flag s_glew_init;
 	static GLuint prog_yuv;

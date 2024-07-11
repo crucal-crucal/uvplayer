@@ -1,8 +1,8 @@
 #pragma once
 
+#include <QWidget>
 
-#include "uvtable.hpp"
-#include "uvvideowidget.hpp"
+#include "uvmedia.hpp"
 
 #define MV_STYLE_MAXNUM     64
 
@@ -23,8 +23,12 @@ enum MV_STYLE {
 	FOREACH_MV_STYLE(ENUM_MV_STYLE)
 };
 
+class CUVMultiViewPrivate;
+
 class CUVMultiView : public QWidget {
 	Q_OBJECT
+	Q_DISABLE_COPY(CUVMultiView)
+	Q_DECLARE_PRIVATE(CUVMultiView)
 
 public:
 	enum Action {
@@ -36,41 +40,16 @@ public:
 	explicit CUVMultiView(QWidget* parent = nullptr);
 	~CUVMultiView() override;
 
-	CUVVideoWidget* getPlayerByID(int playerid);
-	CUVVideoWidget* getPlayerByPos(QPoint pt);
-	CUVVideoWidget* getIdlePlayer();
-
 public slots:
 	void setLayout(int row, int col);
-	void saveLayout();
-	void restoreLayout();
-
-	void mergeCells(int lt, int rb);
-	void exchangeCells(CUVVideoWidget* player1, CUVVideoWidget* player2);
-	void stretch(QWidget* wdg);
-
 	void play(CUVMedia& media);
 
 protected:
-	void initUI();
-	void initConnect();
-	void updateUI();
+	const QScopedPointer<CUVMultiViewPrivate> d_ptr{ nullptr };
 
 	void resizeEvent(QResizeEvent* e) override;
 	void mousePressEvent(QMouseEvent* e) override;
 	void mouseReleaseEvent(QMouseEvent* e) override;
 	void mouseMoveEvent(QMouseEvent* e) override;
 	void mouseDoubleClickEvent(QMouseEvent* e) override;
-
-public:
-	CUVTable table{};
-	CUVTable prev_table{};
-	QVector<QWidget*> views{};
-	QLabel* labRect{ nullptr };
-	QLabel* labDrag{ nullptr };
-
-	QPoint ptMousePress{};
-	uint64_t tsMousePress{};
-	Action action{};
-	bool bStretch{};
 };
