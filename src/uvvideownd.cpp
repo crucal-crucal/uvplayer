@@ -9,9 +9,9 @@ CUVVideoWnd::CUVVideoWnd(QWidget*) {
 	fps = 0;
 	framecnt = 0;
 	tick = 0;
-	draw_time = false;
-	draw_fps = false;
-	draw_resolution = false;
+	draw_time = true;
+	draw_fps = true;
+	draw_resolution = true;
 }
 
 void CUVVideoWnd::calcFPS() {

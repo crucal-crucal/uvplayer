@@ -7,19 +7,19 @@
 #define DEFAULT_FRAME_CACHE 5
 
 enum {
-	SOFTWARE_DECODE       = 1,
-	HARDWARE_DECODE_QSV   = 2,
-	HARDWARE_DECODE_CUVID = 3,
+	SOFTWARE_DECODE        = 1,
+	UVARDWARE_DECODE_QSV   = 2,
+	UVARDWARE_DECODE_CUVID = 3,
 };
 
-#define DEFAULT_DECODE_MODE HARDWARE_DECODE_CUVID
+#define DEFAULT_DECODE_MODE UVARDWARE_DECODE_CUVID
 
 enum uvplayer_event_e {
-	HPLAYER_OPEN_FAILED,
-	HPLAYER_OPENED,
-	HPLAYER_EOF,
-	HPLAYER_CLOSED,
-	HPLAYER_ERROR,
+	UVPLAYER_OPEN_FAILED,
+	UVPLAYER_OPENED,
+	UVPLAYER_EOF,
+	UVPLAYER_CLOSED,
+	UVPLAYER_ERROR,
 };
 
 typedef int (*uvplayer_event_cb)(uvplayer_event_e e, void* userdata);
@@ -52,11 +52,11 @@ public:
 		return 0;
 	}
 
-	void set_media(CUVMedia& media) {
+	void set_media(const CUVMedia& media) {
 		this->media = media;
 	}
 
-	void set_decode_mode(int mode) {
+	void set_decode_mode(const int mode) {
 		decode_mode = mode;
 	}
 
@@ -68,7 +68,7 @@ public:
 		return frame_buf.frame_info;
 	}
 
-	void set_frame_cache(int cache) {
+	void set_frame_cache(const int cache) {
 		frame_buf.setCache(cache);
 	}
 
@@ -84,12 +84,12 @@ public:
 		return frame_buf.pop(pFrame);
 	}
 
-	void set_event_callback(uvplayer_event_cb cb, void* userdata) {
+	void set_event_callback(const uvplayer_event_cb cb, void* userdata) {
 		event_cb = cb;
 		event_cb_userdata = userdata;
 	}
 
-	void event_callback(uvplayer_event_e e) {
+	void event_callback(uvplayer_event_e e) const {
 		if (event_cb) {
 			event_cb(e, event_cb_userdata);
 		}

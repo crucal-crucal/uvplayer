@@ -51,34 +51,33 @@ void CUVGLWnd::paintGL() {
 void CUVGLWnd::drawTime() {
 	std::ostringstream oss;
 	int sec = last_frame.ts / 1000; // NOLINT
-	int h, m, s;
-	m = sec / 60;
-	s = sec % 60;
-	h = m / 60;
+	int m = sec / 60;
+	const int s = sec % 60;
+	const int h = m / 60;
 	m = m % 60;
 	oss << std::setfill('0') << std::setw(2) << h << ":"
 			<< std::setfill('0') << std::setw(2) << m << ":"
 			<< std::setfill('0') << std::setw(2) << s;
-	std::string szTime = oss.str();
+	const std::string szTime = oss.str();
 	// Left Top
-	QPoint pt(10, 40);
-	drawText(pt, szTime.c_str(), 14, Qt::white);
+	constexpr QPoint pt(10, 40);
+	drawText(pt, szTime.c_str(), 14, Qt::red);
 }
 
 void CUVGLWnd::drawFPS() {
 	std::ostringstream oss;
 	oss << "FPS:" << fps;
-	std::string szFPS = oss.str();
+	const std::string szFPS = oss.str();
 	// Right Top
-	QPoint pt(width() - 100, 40);
-	drawText(pt, szFPS.c_str(), 14, Qt::blue);
+	const QPoint pt(width() - 100, 40);
+	drawText(pt, szFPS.c_str(), 14, Qt::red);
 }
 
 void CUVGLWnd::drawResolution() {
 	std::ostringstream oss;
 	oss << last_frame.w << " X " << last_frame.h;
-	std::string szResolution = oss.str();
+	const std::string szResolution = oss.str();
 	// Left Bottom
-	QPoint pt(10, height() - 10);
-	drawText(pt, szResolution.c_str(), 14, Qt::blue);
+	const QPoint pt(10, height() - 10);
+	drawText(pt, szResolution.c_str(), 14, Qt::red);
 }

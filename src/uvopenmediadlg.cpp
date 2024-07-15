@@ -7,6 +7,7 @@
 #include "uvdevice.hpp"
 #include "framelessMessageBox/uvfiledialog.hpp"
 #include "framelessMessageBox/uvmessagebox.hpp"
+
 /**
  * class CUVFileTab
  * @param parent
@@ -26,7 +27,7 @@ CUVFileTab::CUVFileTab(QWidget* parent) : QWidget(parent) {
 
 	m_pBtnBrowse = new QPushButton("...");
 	connect(m_pBtnBrowse, &QPushButton::clicked, this, [=]() {
-		if (const QString file = CUVFileDialog::getOpenFileName(
+		if (const QString file = QFileDialog::getOpenFileName(
 			this, tr("Open Media File"), "",
 			"Video Files(*.3gp *.amv *.asf *.avi *.flv *.m2v *.m4v *.mkv *.mp2 *.mp4 *.mpg *.swf *.ts *.rmvb *.wmv *.dav)\n"
 			"All Files(*)"

@@ -33,16 +33,16 @@ static int uvplayer_event_callback(uvplayer_event_e e, void* userdata) {
 	auto wdg = static_cast<CUVVideoWidget*>(userdata);
 	int custom_event_type;
 	switch (e) {
-		case HPLAYER_OPENED:
+		case UVPLAYER_OPENED:
 			custom_event_type = CUVCustomEvent::OpenMediaSucceed;
 			break;
-		case HPLAYER_OPEN_FAILED:
+		case UVPLAYER_OPEN_FAILED:
 			custom_event_type = CUVCustomEvent::OpenMediaFailed;
 			break;
-		case HPLAYER_EOF:
+		case UVPLAYER_EOF:
 			custom_event_type = CUVCustomEvent::PlayerEOF;
 			break;
-		case HPLAYER_ERROR:
+		case UVPLAYER_ERROR:
 			custom_event_type = CUVCustomEvent::PlayerError;
 			break;
 		default:
@@ -221,9 +221,7 @@ void CUVVideoWidget::onOpenSucceed() {
 
 void CUVVideoWidget::onOpenFailed() { // NOLINT
 	if (retry_cnt == 0) {
-		UVMessageBox::CUVMessageBox::critical(this, tr("ERROR"), tr("Could not open media: \n") +
-		                                                         media.src.c_str() +
-		                                                         QString::asprintf("\nerrcode=%d", pImpl_player->error));
+		UVMessageBox::CUVMessageBox::critical(this, tr("ERROR"), tr("Could not open media: \n") + media.src.c_str() + QString::asprintf("\nerrcode=%d", pImpl_player->error));
 		stop();
 	} else {
 		// hlogw("retry failed: cnt=%d media.src=%s", retry_cnt, media.src.c_str());

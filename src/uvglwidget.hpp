@@ -38,7 +38,6 @@ protected:
 	void initYUV();
 	static void checkShaderCompileStatus(GLuint shader, const std::string& name);
 	static void checkProgramLinkStatus(GLuint program);
-
 	void drawYUV(const CUVFrame* pFrame) const;
 
 	static std::atomic_flag s_glew_init;

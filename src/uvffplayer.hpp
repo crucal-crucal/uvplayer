@@ -1,21 +1,20 @@
 #pragma once
 
 #include <atomic>
+
 #include "uvthread.hpp"
 #include "uvvideoplayer.hpp"
 
-extern "C" {
-#include <libavutil/avutil.h>
-#include <libavutil/time.h>
-#include "libavutil/avutil.h"
-#include "libavutil/pixdesc.h"
-#include "libavcodec/avcodec.h"
-#include "libavformat/avformat.h"
-#include "libavdevice/avdevice.h"
-#include "libswscale/swscale.h"
-}
+struct AVDictionary;
+struct AVFormatContext;
+struct AVCodecContext;
+struct AVPacket;
+struct AVFrame;
+struct SwsContext;
+struct AVSubtitle;
+enum AVPixelFormat : int;
 
-class CUVFFPlayer : public CUVVideoPlayer, public CUVThread {
+class CUVFFPlayer final : public CUVVideoPlayer, public CUVThread {
 public:
 	CUVFFPlayer();
 	~CUVFFPlayer() override;
@@ -41,6 +40,9 @@ private:
 	void doTask() override;
 	bool doFinish() override;
 
+	void process_audio_frame(AVFrame* audio_frame);
+	void process_subtitle(AVSubtitle* subtitle);
+
 	int open();
 	int close();
 
@@ -48,6 +50,7 @@ public:
 	int64_t block_starttime{};
 	int64_t block_timeout{};
 	int quit{};
+	bool loop{ true };
 
 private:
 	static std::atomic_flag s_ffmpeg_init;
@@ -56,10 +59,20 @@ private:
 	AVDictionary* codec_opts{ nullptr };
 
 	AVFormatContext* fmt_ctx{ nullptr };
-	AVCodecContext* codec_ctx{ nullptr };
 
-	AVPacket* packet{ nullptr };
-	AVFrame* frame{ nullptr };
+	AVCodecContext* video_codec_ctx{ nullptr };
+	AVPacket* video_packet{ nullptr };
+	AVFrame* video_frame{ nullptr };
+
+#if 0
+	AVCodecContext* audio_codec_ctx{ nullptr };
+	AVPacket* audio_packet{ nullptr };
+	AVFrame* audio_frame{ nullptr };
+
+	AVCodecContext* subtitle_codec_ctx{ nullptr };
+	AVPacket* subtitle_packet{ nullptr };
+	AVSubtitle* subtitle{ nullptr };
+#endif
 
 	int video_stream_index{};
 	int audio_stream_index{};

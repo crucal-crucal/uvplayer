@@ -92,11 +92,15 @@ public:
 	virtual int start() {
 		if (status == STOP) {
 			thread = std::thread([this] {
-				if (!doPrepare()) return;
+				if (!doPrepare()) {
+					return;
+				}
 				setStatus(RUNNING);
 				run();
 				setStatus(STOP);
-				if (!doFinish()) return;
+				if (!doFinish()) {
+					return;
+				}
 			});
 		}
 		return 0;
