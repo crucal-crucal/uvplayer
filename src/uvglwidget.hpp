@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 // Must be included before any Qt header
 #include "GL/glew.h"

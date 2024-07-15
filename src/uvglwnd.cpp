@@ -1,4 +1,4 @@
-#include "uvglwnd.hpp"
+﻿#include "uvglwnd.hpp"
 
 #include <sstream>
 #include <iomanip>
@@ -18,7 +18,7 @@ void CUVGLWnd::Update() {
 }
 
 /**
- * @note: ֡���ơ�ʱ�䡢FPS�ͷֱ��ʵĻ���
+ * @note: 帧绘制、时间、FPS和分辨率的绘制
  */
 void CUVGLWnd::paintGL() {
 	calcFPS();

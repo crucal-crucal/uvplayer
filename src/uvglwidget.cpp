@@ -1,4 +1,4 @@
-#include "uvglwidget.hpp"
+﻿#include "uvglwidget.hpp"
 
 #include "avdef.hpp"
 

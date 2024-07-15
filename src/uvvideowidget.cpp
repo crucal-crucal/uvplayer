@@ -1,4 +1,4 @@
-#include "uvvideowidget.hpp"
+﻿#include "uvvideowidget.hpp"
 
 #include <QTimer>
 #include <QVBoxLayout>

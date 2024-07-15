@@ -1,4 +1,4 @@
-#include "uvvideotoolbar.hpp"
+﻿#include "uvvideotoolbar.hpp"
 
 #include <QHBoxLayout>
 

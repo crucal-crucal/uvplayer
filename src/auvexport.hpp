@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 // CUV_EXPORT
 #if defined(CUV_STATICLIB) || defined(CUV_SOURCE)

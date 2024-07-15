@@ -1,4 +1,4 @@
-set(TARGET_NAME uvstring)
+﻿set(TARGET_NAME uvstring)
 
 if (WIN32)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)

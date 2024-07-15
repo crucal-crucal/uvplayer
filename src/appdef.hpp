@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #define APP_NAME "uvplayer"
 #define APP_VERSION "1.0.0"

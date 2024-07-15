@@ -1,4 +1,4 @@
-#include "uvopenmediadlg.hpp"
+﻿#include "uvopenmediadlg.hpp"
 
 #include <QLabel>
 #include <QVBoxLayout>

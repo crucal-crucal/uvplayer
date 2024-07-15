@@ -1,4 +1,4 @@
-#include "uvvideownd.hpp"
+﻿#include "uvvideownd.hpp"
 
 #ifdef Q_OS_WIN
 #include <windows.h> // NOLINT

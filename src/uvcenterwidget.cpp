@@ -1,4 +1,4 @@
-#include "uvcenterwidget.hpp"
+﻿#include "uvcenterwidget.hpp"
 
 #include <QHBoxLayout>
 #include <QSplitter>

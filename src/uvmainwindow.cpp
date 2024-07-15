@@ -1,4 +1,4 @@
-#include "uvmainwindow.hpp"
+﻿#include "uvmainwindow.hpp"
 
 #include <QKeyEvent>
 #include <QMenuBar>

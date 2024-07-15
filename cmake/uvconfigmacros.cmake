@@ -1,4 +1,4 @@
-# uvconfigmacros.cmake
+﻿# uvconfigmacros.cmake
 
 macro(uv_initialize_build_flags)
     set(CMAKE_CXX_STANDARD 17)

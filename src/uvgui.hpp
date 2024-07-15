@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 typedef unsigned int CUVColor; // 0xAARRGGBB
 

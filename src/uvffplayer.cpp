@@ -1,4 +1,4 @@
-#include "uvffplayer.hpp"
+ï»¿#include "uvffplayer.hpp"
 
 #include "uvscope.hpp"
 
@@ -20,13 +20,13 @@ static void list_devices() {
 	AVFormatContext* fmt_ctx = avformat_alloc_context();
 	AVDictionary* options = nullptr;
 	av_dict_set(&options, "list_devices", "true", 0);
-	// ¸ù¾Ý²Ù×÷ÏµÍ³ÉèÖÃÊäÈë¸ñÊ½µÄÇý¶¯Ãû³Æ
+	// æ ¹æ®æ“ä½œç³»ç»Ÿè®¾ç½®è¾“å…¥æ ¼å¼çš„é©±åŠ¨åç§°
 #ifdef _WIN32
-	constexpr char drive[] = "dshow"; // Windows Æ½Ì¨Ê¹ÓÃ DirectShow
+	constexpr char drive[] = "dshow"; // Windows å¹³å°ä½¿ç”¨ DirectShow
 #elif defined(__linux__)
-	constexpr char drive[] = "v4l2"; // Linux Æ½Ì¨Ê¹ÓÃ Video4Linux2
+	constexpr char drive[] = "v4l2"; // Linux å¹³å°ä½¿ç”¨ Video4Linux2
 #else
-	constexpr char drive[] = "avfoundation"; // macOS Æ½Ì¨Ê¹ÓÃ AVFoundation
+	constexpr char drive[] = "avfoundation"; // macOS å¹³å°ä½¿ç”¨ AVFoundation
 #endif
 
 	if (auto ifmt = av_find_input_format(drive)) {
@@ -99,7 +99,7 @@ void CUVFFPlayer::doTask() {
 	while (!quit) {
 		av_init_packet(video_packet);
 
-		fmt_ctx->interrupt_callback.callback = interrupt_callback; // ÉèÖÃÖÐ¶Ï»Øµ÷
+		fmt_ctx->interrupt_callback.callback = interrupt_callback; // è®¾ç½®ä¸­æ–­å›žè°ƒ
 		fmt_ctx->interrupt_callback.opaque = this;
 		block_starttime = time(nullptr);
 		int ret = av_read_frame(fmt_ctx, video_packet);
@@ -252,7 +252,7 @@ int CUVFFPlayer::open() {
 	std::cout << "subtitle_stream_index = " << subtitle_stream_index << std::endl;
 
 
-	// ³õÊ¼»¯ÊÓÆµ½âÂëÆ÷
+	// åˆå§‹åŒ–è§†é¢‘è§£ç å™¨
 	if (video_stream_index >= 0) {
 		AVStream* video_stream = fmt_ctx->streams[video_stream_index];
 		video_time_base_num = video_stream->time_base.num;
@@ -427,7 +427,7 @@ try_software_decode:
 	}
 
 #if 0
-	// ³õÊ¼»¯ÒôÆµ½âÂëÆ÷
+	// åˆå§‹åŒ–éŸ³é¢‘è§£ç å™¨
 	if (audio_stream_index >= 0) {
 		AVStream* audio_stream = fmt_ctx->streams[audio_stream_index];
 		AVCodecParameters* audio_codec_param = audio_stream->codecpar;
@@ -469,7 +469,7 @@ try_software_decode:
 		std::cerr << "Can not find audio stream." << std::endl;
 	}
 
-	// ³õÊ¼»¯×ÖÄ»½âÂëÆ÷
+	// åˆå§‹åŒ–å­—å¹•è§£ç å™¨
 	if (subtitle_stream_index >= 0) {
 		AVStream* subtitle_stream = fmt_ctx->streams[subtitle_stream_index];
 		AVCodecParameters* subtitle_codec_param = subtitle_stream->codecpar;

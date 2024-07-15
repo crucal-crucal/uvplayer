@@ -1,4 +1,4 @@
-#include "uvtable.hpp"
+﻿#include "uvtable.hpp"
 
 
 void combine(const CUVTableCell& cell1, const CUVTableCell& cell2, CUVTableCell& comb) {

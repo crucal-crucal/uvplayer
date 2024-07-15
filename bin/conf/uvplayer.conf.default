@@ -1,4 +1,4 @@
-# [root]
+﻿# [root]
 
 [logging]
 fileName=../log/stdout.log

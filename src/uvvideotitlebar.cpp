@@ -1,4 +1,4 @@
-#include "uvvideotitlebar.hpp"
+﻿#include "uvvideotitlebar.hpp"
 
 #include <QHBoxLayout>
 

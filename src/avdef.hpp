@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 typedef enum {
 	PIX_FMT_NONE = 0,

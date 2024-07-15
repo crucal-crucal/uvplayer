@@ -1,4 +1,4 @@
-# Qt
+ï»¿# Qt
 uv_setup_Qt()
 
 # ffmpeg
@@ -32,7 +32,7 @@ if (FFMPEG_CHECK_VERSION)
     # Get FFmpeg version
     get_ffmpeg_version()
 
-    # ¸ù¾Ý°æ±¾ºÅÉèÖÃÔ¤´¦Àíºê
+    # æ ¹æ®ç‰ˆæœ¬å·è®¾ç½®é¢„å¤„ç†å®
     if (FFMPEG_VERSION_MAJOR_INT GREATER_EQUAL 59)
         add_definitions(-DFFMPEG_VERSION_GTE_5_0_0)
         message(STATUS "FFmpeg version >= 5.0.0")
