@@ -5,17 +5,18 @@
 
 #include "logmessage_p.hpp"
 
-/*!
- *  \LogMessagePrivate
- *  \internal
+/**
+ * class LogMessagePrivate
+ * Internal class for LogMessage
+ * @param q Pointer to the public LogMessage class
  */
-Logger_p::LogMessagePrivate::LogMessagePrivate(LogMessage* q): q_ptr(q) {
+Logger::LogMessagePrivate::LogMessagePrivate(LogMessage* q): q_ptr(q) {
 }
 
-Logger_p::LogMessagePrivate::~LogMessagePrivate() = default;
+Logger::LogMessagePrivate::~LogMessagePrivate() = default;
 
-void Logger_p::LogMessagePrivate::init(const QtMsgType& type, const QString& message, const QHash<QString, QString>*& logVars, const QString& file,
-                                       const QString& function, const int& line) {
+void Logger::LogMessagePrivate::init(const QtMsgType& type, const QString& message, const QHash<QString, QString>*& logVars, const QString& file,
+                                     const QString& function, const int& line) {
 	m_timestamp = QDateTime::currentDateTime();
 	m_threadId = QThread::currentThreadId();
 	m_type = type;
@@ -28,17 +29,17 @@ void Logger_p::LogMessagePrivate::init(const QtMsgType& type, const QString& mes
 	}
 }
 
-/*!
- *  \LogMessage
+/**
+ * class LogMessage
  */
-Logger_p::LogMessage::LogMessage(const QtMsgType& type, const QString& message, const QHash<QString, QString>* logVars, const QString& file,
-                                 const QString& function, const int line): d_ptr(new LogMessagePrivate(this)) {
+Logger::LogMessage::LogMessage(const QtMsgType& type, const QString& message, const QHash<QString, QString>* logVars, const QString& file,
+                               const QString& function, const int line): d_ptr(new LogMessagePrivate(this)) {
 	d_func()->init(type, message, logVars, file, function, line);
 }
 
-Logger_p::LogMessage::~LogMessage() = default;
+Logger::LogMessage::~LogMessage() = default;
 
-QString Logger_p::LogMessage::toString(const QString& msgFormat, const QString& timestampFormat) const {
+QString Logger::LogMessage::toString(const QString& msgFormat, const QString& timestampFormat) const {
 	Q_D(const LogMessage);
 
 	QString decorated = msgFormat + "\n";
@@ -93,7 +94,7 @@ QString Logger_p::LogMessage::toString(const QString& msgFormat, const QString& 
 	return decorated;
 }
 
-QtMsgType Logger_p::LogMessage::getType() const {
+QtMsgType Logger::LogMessage::getType() const {
 	Q_D(const LogMessage);
 
 	return d->m_type;

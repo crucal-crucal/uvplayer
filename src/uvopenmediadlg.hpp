@@ -5,7 +5,7 @@
 #include <QPushButton>
 #include <QTabWidget>
 
-#include "uvmedia.hpp"
+#include "global/uvmedia.hpp"
 
 class CUVFileTab : public QWidget {
 	Q_OBJECT

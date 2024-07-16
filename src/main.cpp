@@ -1,14 +1,14 @@
 ﻿#include <fstream>
 #include <iostream>
-#include <iostream>
 #include <QApplication>
 #include <QDebug>
 #include <QDir>
 #include <QResource>
 
-#include "uvbase.hpp"
-#include "uvconf.hpp"
 #include "uvmainwindow.hpp"
+#include "conf/uvconf.hpp"
+#include "logger/filelogger.hpp"
+
 /**
  * @note config
  */
@@ -18,26 +18,26 @@ QString getExecutablePath(); // 获取可执行文件路径
 QString getExecutableDir();  // 获取可执行文件所在目录
 QString getRunDir();         // 获取运行目录
 void logToFile(const std::string& message, const std::string& logFile);
-int load_config();
+int load_config(QApplication& app);
 bool loadResources(const QString& strPath);
 bool unloadResources(const QString& strPath);
 bool loadStyle(QApplication& app, const QString& strPath);
 
 int main(int argc, char* argv[]) {
-	qInfo("-------------------app start----------------------------------");
 	QApplication app(argc, argv);
 	QApplication::setApplicationName(APP_NAME);
 
-	if (load_config() != 0) {
+	if (load_config(app) != 0) {
 		std::cerr << "Failed to load config" << std::endl;
 		return -1;
 	}
 
+	qInfo("-------------------app start----------------------------------");
 	const QFileInfo appFile = getExecutablePath();;
 	const QDir dir(appFile.absolutePath());
 	const QString appParpath = dir.absolutePath();
 	const QString rcc_path = appParpath + "/" + QString::fromLatin1(APP_NAME) + ".rcc";
-	const QString style_path = ":/skin/uvplayer.qss";
+	const QString style_path = ":/skin/" + QString::fromLatin1(APP_NAME) + ".qss";
 	// 加载 rcc
 	qInfo((loadResources(rcc_path) ? "Load Resource Success!" : "Load Resource Failed!"));
 	// 加载 style
@@ -77,7 +77,7 @@ void logToFile(const std::string& message, const std::string& logFile) {
 	}
 }
 
-int load_config() {
+int load_config(QApplication& app) {
 	QString execDir = getExecutableDir();
 
 	g_confile = new CUVIniParser;
@@ -85,13 +85,13 @@ int load_config() {
 
 	if (!QFile::exists(confFilePath)) {
 		if (!QFile::copy(execDir + "/conf/" APP_NAME ".conf.default", confFilePath)) {
-			std::cerr << "Failed to copy default config file" << std::endl;
+			qCritical() << "Failed to copy default config file";
 			return -1; // 返回负值表示失败
 		}
 	}
 
 	if (g_confile->loadFromFile(confFilePath.toStdString().c_str()) != 0) {
-		std::cerr << "Failed to load config file" << std::endl;
+		qCritical() << "Failed to load config file";
 		return -1; // 返回负值表示失败
 	}
 
@@ -99,10 +99,16 @@ int load_config() {
 	if (QString logFile = QString::fromStdString(g_confile->getValue("logfile")); logFile.isEmpty()) {
 		logFile = QString("%1/logs").arg(execDir);
 		if (!QDir().mkpath(logFile)) {
-			std::cerr << "Failed to create log directory" << std::endl;
+			qCritical() << "Failed to create log directory";
 			return -1; // 返回负值表示失败
 		}
 	}
+
+	const LoggerConfigData logger_config_data{};
+	const auto logSettings = new QSettings(confFilePath, QSettings::IniFormat, &app);
+	logSettings->beginGroup(QString::fromStdWString(logger_config_data.group));
+	const auto logger = new Logger::FileLogger(logSettings, 10000, &app);
+	logger->installMsgHandler();
 
 	return 0; // 返回0表示成功
 }
@@ -122,8 +128,7 @@ bool unloadResources(const QString& strPath) {
 }
 
 bool loadStyle(QApplication& app, const QString& strPath) {
-	QFile file(strPath);
-	if (file.open(QFile::ReadOnly)) {
+	if (QFile file(strPath); file.open(QFile::ReadOnly)) {
 		const QString styleSheet = QLatin1String(file.readAll());
 		app.setStyleSheet(styleSheet);
 		file.close();

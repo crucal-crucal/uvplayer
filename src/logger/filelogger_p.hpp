@@ -4,7 +4,7 @@
 #include <QFile>
 #include <QSettings>
 
-namespace Logger_p {
+namespace Logger {
 class FileLogger;
 
 class FileLoggerPrivate {
@@ -16,13 +16,13 @@ public:
 	~FileLoggerPrivate();
 
 	FileLogger* const q_ptr{ nullptr };
-	QString m_fileName{};         // 日志文件名
-	qlonglong m_maxSize{};        // 文件的最大大小(以字节为单位), 0 =无限
-	int m_maxBackups{};           // 备份文件的最大数量, 0 = 无限
-	QSettings* m_settings{};      // 配置设置
-	QFile* m_file{};              // 日志文件, 0 = 禁用
-	QBasicTimer m_refreshTimer{}; // 刷新配置设置的定时器
-	QBasicTimer m_flushTimer{};   // 刷新文件I/O缓冲区的定时器
+	QString m_fileName{};             // 日志文件名
+	qlonglong m_maxSize{};            // 文件的最大大小(以字节为单位), 0 =无限
+	int m_maxBackups{};               // 备份文件的最大数量, 0 = 无限
+	QSettings* m_settings{ nullptr }; // 配置设置
+	QFile* m_file{ nullptr };         // 日志文件, 0 = 禁用
+	QBasicTimer m_refreshTimer{};     // 刷新配置设置的定时器
+	QBasicTimer m_flushTimer{};       // 刷新文件I/O缓冲区的定时器
 	/**
 	 * @note: 打开输出文件
 	 */

@@ -1,12 +1,12 @@
 ﻿# [root]
 
-[logging]
-fileName=../log/stdout.log
+[logger]
+fileName=../logs/stdout.log
 maxSize=1000000
 maxBackups=10
 bufferSize=100
 minLevel=DEBUG
-msgFormat={timestamp} {typeNr} {type} {thread} {message}\n  in {file} line {line} function {function}
+msgFormat={timestamp} {typeNr} {type} {thread} {message} in {file} line {line} function {function}
 timestampFormat=dd.MM.yyyy hh:mm:ss.zzz
 
 [ui]
@@ -32,8 +32,8 @@ statusbar_visible = true
 lside_visible = false
 rside_visible = false
 
-mv_row = 3
-mv_col = 3
+mv_row = 1
+mv_col = 1
 mv_fullscreen = false
 
 draw_time = false
@@ -71,7 +71,7 @@ retry_interval = 10000  # ms
 retry_maxcnt = -1 # -1 means INFINITE
 
 # for file source loop playback
-loop_playback = false
+loop_playback = true
 
 [media]
 # 0:file 1:network 2:capture

@@ -2,6 +2,7 @@
 
 #include <deque>
 #include <mutex>
+#include <QMutexLocker>
 
 #include "uvbuf.hpp"
 
@@ -77,9 +78,10 @@ public:
 	int pop(CUVFrame* pFrame);
 	void clear() override;
 
-	int cache_num{};
-	FrameStats frame_stats{};
+	int cache_num;
+	FrameStats frame_stats;
 	FrameInfo frame_info{};
-	std::deque<CUVFrame> frames{};
-	std::mutex mutex{};
+	std::deque<CUVFrame> frames;
+
+	QMutex mutex;
 };

@@ -5,7 +5,7 @@
 
 #include "logger_p_global.hpp"
 
-namespace Logger_p {
+namespace Logger {
 class LogMessagePrivate;
 
 /*
@@ -21,7 +21,7 @@ class LogMessagePrivate;
  * - {function} 函数名
  * - {line} 行号
  */
-class LOGGER_P_EXPORT LogMessage {
+class LOGGER_EXPORT LogMessage {
 	Q_DISABLE_COPY(LogMessage)
 	Q_DECLARE_PRIVATE(LogMessage)
 

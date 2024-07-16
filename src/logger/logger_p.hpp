@@ -5,7 +5,7 @@
 
 #include "logmessage.hpp"
 
-namespace Logger_p {
+namespace Logger {
 class Logger;
 
 class LoggerPrivate {

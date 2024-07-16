@@ -6,10 +6,9 @@ int CUVFrameBuf::push(CUVFrame* pFrame) {
 
 	frame_stats.push_cnt++;
 
-	std::lock_guard<std::mutex> locker(mutex);
+	QMutexLocker locker(&mutex);
 
 	if (frames.size() >= (size_t) cache_num) {
-		// std::cout << ("frame cache full!");
 		if (policy == CUVFrameBuf::DISCARD) {
 			return -20; // note: cache full, discard frame
 		}
@@ -18,7 +17,6 @@ int CUVFrameBuf::push(CUVFrame* pFrame) {
 		frames.pop_front();
 		free(frame.buf.len);
 		if (frame.userdata) {
-			// std::cout << ("free userdata");
 			::free(frame.userdata);
 			frame.userdata = nullptr;
 		}
@@ -48,13 +46,12 @@ int CUVFrameBuf::push(CUVFrame* pFrame) {
 int CUVFrameBuf::pop(CUVFrame* pFrame) {
 	frame_stats.pop_cnt++;
 
-	std::lock_guard<std::mutex> locker(mutex);
+	QMutexLocker locker(&mutex);
 
 	if (isNull())
 		return -10;
 
 	if (frames.empty()) {
-		// std::cout << ("frame cache empty!");
 		return -20;
 	}
 
@@ -72,7 +69,7 @@ int CUVFrameBuf::pop(CUVFrame* pFrame) {
 }
 
 void CUVFrameBuf::clear() {
-	std::lock_guard<std::mutex> locker(mutex);
+	QMutexLocker locker(&mutex);
 	frames.clear();
 	CUVRingBuf::clear();
 }

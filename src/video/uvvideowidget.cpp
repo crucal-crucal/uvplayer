@@ -1,14 +1,15 @@
 ﻿#include "uvvideowidget.hpp"
 
+#include <QDebug>
 #include <QTimer>
 #include <QVBoxLayout>
 
-#include "uvconf.hpp"
 #include "uvcustomeventtype.hpp"
-#include "uvffplayer.hpp"
-#include "uvfunctions.hpp"
 #include "uvopenmediadlg.hpp"
+#include "codec/uvffplayer.hpp"
+#include "conf/uvconf.hpp"
 #include "framelessMessageBox/uvmessagebox.hpp"
+#include "global/uvfunctions.hpp"
 
 #define DEFAULT_RETRY_INTERVAL  10000  // ms
 #define DEFAULT_RETRY_MAXCNT    6
@@ -154,7 +155,7 @@ void CUVVideoWidget::resume() {
 }
 
 void CUVVideoWidget::restart() { // NOLINT
-	std::cout << "restart..." << std::endl;
+	qDebug() << "restart...";
 	if (pImpl_player) {
 		pImpl_player->stop();
 		pImpl_player->start();
@@ -215,7 +216,7 @@ void CUVVideoWidget::onOpenSucceed() {
 	}
 
 	if (retry_cnt != 0) {
-		// hlogi("retry succeed: cnt=%d media.src=%s", retry_cnt, media.src.c_str());
+		qInfo() << "retry succeed: cnt=" << retry_cnt << " media.src=" << media.src.c_str();
 	}
 }
 
@@ -224,7 +225,7 @@ void CUVVideoWidget::onOpenFailed() { // NOLINT
 		UVMessageBox::CUVMessageBox::critical(this, tr("ERROR"), tr("Could not open media: \n") + media.src.c_str() + QString::asprintf("\nerrcode=%d", pImpl_player->error));
 		stop();
 	} else {
-		// hlogw("retry failed: cnt=%d media.src=%s", retry_cnt, media.src.c_str());
+		qWarning() << "retry failed: cnt=" << retry_cnt << " media.src=" << media.src.c_str();
 		retry();
 	}
 }

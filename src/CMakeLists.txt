@@ -46,11 +46,16 @@ set(GLEW_DIR ${CMAKE_SOURCE_DIR}/3rdparty/glew)
 include_directories(${GLEW_DIR}/include)
 if (WIN32)
     link_directories(${GLEW_DIR}/lib)
-endif ()
-
-if (WIN32)
     set(FFMPEG_LIBS avcodec avdevice avfilter avformat avutil postproc swresample swscale)
 endif ()
+
+# sdl
+#set(SDL_DIR ${CMAKE_SOURCE_DIR}/3rdparty/sdl)
+#include_directories(${SDL_DIR}/include)
+#if (WIN32)
+#    link_directories(${SDL_DIR}/lib)
+#    set(SDL_LIBS SDL2)
+#endif ()
 
 # logger
 include_directories(logger)
@@ -58,9 +63,13 @@ include_directories(logger)
 include_directories(framelessMessageBox)
 # app
 include_directories(.)
+include_directories(def)
+include_directories(codec)
+include_directories(frame)
+include_directories(gl)
 
 add_executable(${PROJECT_NAME} main.cpp
-        appdef.hpp
+        def/appdef.hpp
         uvmainwindow.cpp
         uvmainwindow.hpp
         uvmainwindow_p.hpp
@@ -71,64 +80,65 @@ add_executable(${PROJECT_NAME} main.cpp
         uvmultiview_p.hpp
         uvtable.cpp
         uvtable.hpp
-        uvthread.hpp
-        uvffplayer.cpp
-        uvffplayer.hpp
-        uvvideoplayer.hpp
-        avdef.hpp
-        uvmedia.hpp
-        uvbuf.hpp
-        uvframe.hpp
-        uvframe.cpp
-        uvscope.hpp
-        uvvideowidget.cpp
-        uvvideowidget.hpp
-        uvvideotitlebar.cpp
-        uvvideotitlebar.hpp
-        uvvideotoolbar.cpp
-        uvvideotoolbar.hpp
-        uvvideownd.cpp
-        uvvideownd.hpp
+        codec/uvthread.hpp
+        codec/uvffplayer.cpp
+        codec/uvffplayer.hpp
+        video/uvvideoplayer.hpp
+        def/avdef.hpp
+        global/uvmedia.hpp
+        frame/uvbuf.hpp
+        frame/uvframe.hpp
+        frame/uvframe.cpp
+        global/uvscope.hpp
+        video/uvvideowidget.cpp
+        video/uvvideowidget.hpp
+        video/uvvideotitlebar.cpp
+        video/uvvideotitlebar.hpp
+        video/uvvideotoolbar.cpp
+        video/uvvideotoolbar.hpp
+        video/uvvideownd.cpp
+        video/uvvideownd.hpp
         uvopenmediadlg.cpp
         uvopenmediadlg.hpp
         uvcustomeventtype.hpp
-        uvgl.hpp
-        uvglwidget.cpp
-        uvglwidget.hpp
-        uvgui.hpp
-        uvglwnd.cpp
-        uvglwnd.hpp
-        uvdef.hpp
-        uviniparser.cpp
-        uviniparser.hpp
-        uvfile.hpp
-        uverr.hpp
+        gl/uvgl.hpp
+        gl/uvglwidget.cpp
+        gl/uvglwidget.hpp
+        gl/uvgui.hpp
+        gl/uvglwnd.cpp
+        gl/uvglwnd.hpp
+        def/uvdef.hpp
+        conf/uviniparser.cpp
+        conf/uviniparser.hpp
+        conf/uvfile.hpp
+        def/uverr.hpp
         uvstring/uvstring.cpp
         uvstring/uvstring.hpp
-        auvexport.hpp
-        uvconf.hpp
-        uvbase.hpp
-        uvdevice.hpp
-        uvfunctions.hpp
+        def/auvexport.hpp
+        conf/uvconf.hpp
+        global/uvbase.hpp
+        global/uvdevice.hpp
+        global/uvfunctions.hpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE src/GL)
 # Qt
 target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::OpenGL Qt5::Multimedia)
-# OpenGL & GLEW
+# 3rdparty, OpenGL & SDL & FFmpeg & GLEW
 target_compile_definitions(${PROJECT_NAME} PRIVATE -DGLEW_STATIC)
 target_link_libraries(${PROJECT_NAME}
+        ${FFMPEG_LIBS}
         glew32s
         opengl32
 )
-# 3rdparty
-target_link_libraries(${PROJECT_NAME} ${FFMPEG_LIBS})
 # app
 target_link_libraries(${PROJECT_NAME}
         logger
         framelessMessageBox
         uvstring
 )
+# logger => Qt Release版本中如果需要定位到日志文件，需要添加此宏
+add_definitions(-DQT_MESSAGELOGCONTEXT)
 
 # subdirectories
 add_subdirectory(logger)
@@ -138,20 +148,19 @@ add_subdirectory(uvstring)
 # dependencies required for installation and runtime
 file(GLOB FFMPEG_DLLS ${FFMPEG_DIR}/bin/*.dll)
 file(GLOB GLEW_DLLS ${GLEW_DIR}/bin/*.dll)
-set(RCCFILE ${CMAKE_SOURCE_DIR}/resource/uvplayer.rcc)
-set(CONF_FILE_NAME uvplayer.conf.default)
+file(GLOB SDL_DLLS ${SDL_DIR}/bin/*.dll)
+set(RCCFILE ${CMAKE_SOURCE_DIR}/resource/mediaplayer.rcc)
+set(CONF_FILE_NAME mediaplayer.conf.default)
 set(CONF_FILE_PATH ${CMAKE_SOURCE_DIR}/bin/conf/${CONF_FILE_NAME})
 
 # install application and dependencies, except for Qt
-install(TARGETS ${PROJECT_NAME}
-        RUNTIME DESTINATION bin
-)
+install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 install(FILES ${RCCFILE} DESTINATION bin)
 install(FILES ${CONF_FILE_PATH} DESTINATION bin/conf)
 install(FILES ${FFMPEG_DLLS} DESTINATION bin)
 install(FILES ${GLEW_DLLS} DESTINATION bin)
 
-# copy ffmpeg dlls to output directory
+# copy ffmpeg dlls, glew dlls to output directory
 if (WIN32)
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different

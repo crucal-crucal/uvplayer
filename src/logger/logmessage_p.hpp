@@ -3,7 +3,7 @@
 #include <QDateTime>
 #include <QHash>
 
-namespace Logger_p {
+namespace Logger {
 class LogMessage;
 
 class LogMessagePrivate {

@@ -25,15 +25,15 @@ void CUVGLWnd::paintGL() {
 	CUVGLWidget::paintGL();
 
 	if (last_frame.isNull()) {
-		// QPoint pt = rect().center() - QPoint(80, -10);
-		// drawText(pt, "NO VIDEO", 16, Qt::white);
-		//
-		// QPainter painter(this);
-		// QPixmap pixmap(":/image/media_bk.png");
-		// int w = pixmap.width();
-		// int h = pixmap.height();
-		// QRect rc((width() - w) / 2, (height() - h) / 2, w, h);
-		// painter.drawPixmap(rc, pixmap);
+//		 QPoint pt = rect().center() - QPoint(80, -10);
+//		 drawText(pt, "NO VIDEO", 16, Qt::white);
+//
+//		 QPainter painter(this);
+//		 QPixmap pixmap(":/image/media_bk.png");
+//		 int w = pixmap.width();
+//		 int h = pixmap.height();
+//		 QRect rc((width() - w) / 2, (height() - h) / 2, w, h);
+//		 painter.drawPixmap(rc, pixmap);
 	} else {
 		drawFrame(&last_frame);
 		if (draw_time) {

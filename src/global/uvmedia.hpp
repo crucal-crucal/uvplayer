@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "avdef.hpp"
+#include "../def/avdef.hpp"
 
 typedef struct media_s {
 	media_type_e type{};

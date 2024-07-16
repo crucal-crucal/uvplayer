@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include "uvmedia.hpp"
-#include "uvframe.hpp"
+#include "frame/uvframe.hpp"
+#include "global/uvmedia.hpp"
 
 #define DEFAULT_FPS         25
 #define DEFAULT_FRAME_CACHE 5

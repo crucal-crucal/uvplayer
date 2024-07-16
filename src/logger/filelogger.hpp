@@ -6,7 +6,7 @@
 
 #include "logger.hpp"
 
-namespace Logger_p {
+namespace Logger {
 class FileLoggerPrivate;
 
 /*
@@ -34,7 +34,7 @@ class FileLoggerPrivate;
  * @see LogMessage获取消息装饰的描述
  * @see Logger获取缓冲区的描述
  */
-class LOGGER_P_EXPORT FileLogger final : public Logger {
+class LOGGER_EXPORT FileLogger final : public Logger {
 	Q_OBJECT
 	Q_DISABLE_COPY(FileLogger)
 	Q_DECLARE_PRIVATE(FileLogger)

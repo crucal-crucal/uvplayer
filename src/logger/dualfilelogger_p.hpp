@@ -2,7 +2,7 @@
 
 #include "filelogger.hpp"
 
-namespace Logger_p {
+namespace Logger {
 class DualFileLogger;
 
 class DualFileLoggerPrivate {

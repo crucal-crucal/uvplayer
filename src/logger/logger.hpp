@@ -5,7 +5,7 @@
 
 #include "logmessage.hpp"
 
-namespace Logger_p {
+namespace Logger {
 class LoggerPrivate;
 
 /*
@@ -20,7 +20,7 @@ class LoggerPrivate;
  * 如果缓冲区被禁用，那么只有严重性 >= minLevel的消息会写出。
  * @see 参见 LogMessage 获取消息装饰的描述。
  */
-class LOGGER_P_EXPORT Logger : public QObject {
+class LOGGER_EXPORT Logger : public QObject {
 	Q_OBJECT
 	Q_DISABLE_COPY(Logger)
 	Q_DECLARE_PRIVATE(Logger)

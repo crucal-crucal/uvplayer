@@ -1,6 +1,6 @@
 ﻿#include "uvglwidget.hpp"
 
-#include "avdef.hpp"
+#include "def/avdef.hpp"
 
 #include <QPainter>
 #include <array>

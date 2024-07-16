@@ -2,7 +2,7 @@
 
 #include <QHBoxLayout>
 
-#include <uvfunctions.hpp>
+#include "global/uvfunctions.hpp"
 
 CUVVideoTitlebar::CUVVideoTitlebar(QWidget* parent) : QFrame(parent) {
 	init();

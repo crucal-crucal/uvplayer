@@ -1,17 +1,16 @@
 ﻿#include "uvmainwindow.hpp"
 
-#include <QKeyEvent>
 #include <QMenuBar>
 #include <QSignalMapper>
 #include <QStatusBar>
 #include <uvmessagebox.hpp>
 
 #include "uvcenterwidget.hpp"
-#include "uvconf.hpp"
-#include "uvdef.hpp"
-#include "uvglwidget.hpp"
 #include "uvmainwindow_p.hpp"
 #include "uvopenmediadlg.hpp"
+#include "conf/uvconf.hpp"
+#include "def/uvdef.hpp"
+#include "gl/uvglwidget.hpp"
 
 extern "C" {
 #include <libavutil/avutil.h>

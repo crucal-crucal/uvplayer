@@ -3,7 +3,7 @@
 
 #include "uvmultiview.hpp"
 #include "uvtable.hpp"
-#include "uvvideowidget.hpp"
+#include "video/uvvideowidget.hpp"
 
 class CUVMultiView;
 

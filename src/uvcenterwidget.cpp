@@ -3,7 +3,7 @@
 #include <QHBoxLayout>
 #include <QSplitter>
 
-#include "uvdef.hpp"
+#include "def/uvdef.hpp"
 
 CUVCenterWidget::CUVCenterWidget(QWidget* parent) : QWidget(parent) {
 	init();

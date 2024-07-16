@@ -13,9 +13,9 @@
  */
 #ifdef Q_OS_WIN
 #ifdef LOGGER_LIB
-#define LOGGER_P_EXPORT Q_DECL_EXPORT
+#define LOGGER_EXPORT Q_DECL_EXPORT
 #else
-#define LOGGER_P_EXPORT Q_DECL_IMPORT
+#define LOGGER_EXPORT Q_DECL_IMPORT
 #endif
 #elif defined(Q_OS_UNIX)
 #define LOGGER_P_EXPORT
@@ -23,6 +23,7 @@
 
 using i64 = long long;
 using ui64 = unsigned long long;
+
 /*
  * @breif: 配置文件默认配置
  */
@@ -62,12 +63,12 @@ inline LoggerConfigData& LoggerConfigData::operator=(const LoggerConfigData& oth
 }
 
 inline void LoggerConfigData::reset() {
-	group = L"logging";
+	group = L"logger";
 	fileName = L"../log/stdout.log";
 	maxSize = 1000000;
 	maxBackups = 10;
 	bufferSize = 100;
 	minLevel = L"DEBUG";
-	msgFormat = "{timestamp} {typeNr} {type} {thread} {message}\\n  in {file} line {line} function {function}";
+	msgFormat = "{timestamp} {typeNr} {type} {thread} {message} in {file} line {line} function {function}";
 	timestampFormat = "dd.MM.yyyy hh:mm:ss.zzz";
 }

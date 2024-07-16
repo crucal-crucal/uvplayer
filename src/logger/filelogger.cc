@@ -6,16 +6,17 @@
 
 #include "filelogger_p.hpp"
 
-/*!
- *  \FileLoggerPrivate
- *  \internal
+/**
+ * class FileLoggerPrivate
+ * Internal class for FileLogger
+ * @param q Pointer to the public FileLogger class
  */
-Logger_p::FileLoggerPrivate::FileLoggerPrivate(FileLogger* q): q_ptr(q) {
+Logger::FileLoggerPrivate::FileLoggerPrivate(FileLogger* q): q_ptr(q) {
 }
 
-Logger_p::FileLoggerPrivate::~FileLoggerPrivate() = default;
+Logger::FileLoggerPrivate::~FileLoggerPrivate() = default;
 
-void Logger_p::FileLoggerPrivate::open() {
+void Logger::FileLoggerPrivate::open() {
 	if (m_fileName.isEmpty()) {
 		qWarning("Name of logFile is empty");
 	} else {
@@ -28,7 +29,7 @@ void Logger_p::FileLoggerPrivate::open() {
 	}
 }
 
-void Logger_p::FileLoggerPrivate::close() {
+void Logger::FileLoggerPrivate::close() {
 	if (m_file) {
 		m_file->close();
 		delete m_file;
@@ -36,7 +37,7 @@ void Logger_p::FileLoggerPrivate::close() {
 	}
 }
 
-void Logger_p::FileLoggerPrivate::rotate() const {
+void Logger::FileLoggerPrivate::rotate() const {
 	int count{};
 	forever {
 		if (QFile bakFile(QString("%1.%2").arg(m_fileName).arg(count + 1)); bakFile.exists()) {
@@ -58,10 +59,10 @@ void Logger_p::FileLoggerPrivate::rotate() const {
 	QFile::rename(m_fileName, m_fileName + ".1");
 }
 
-void Logger_p::FileLoggerPrivate::refreshSettings() {
+void Logger::FileLoggerPrivate::refreshSettings() {
 	Q_Q(FileLogger);
 
-	Logger_p::FileLogger::mutex.lock();
+	FileLogger::mutex.lock();
 	const QString oldFileName = m_fileName;
 	m_settings->sync();
 	m_fileName = m_settings->value("fileName").toString();
@@ -81,7 +82,7 @@ void Logger_p::FileLoggerPrivate::refreshSettings() {
 	q->bufferSize = m_settings->value("bufferSize", 0).toInt();
 
 	if (const QByteArray minLevelStr = m_settings->value("minLevel", "ALL").toByteArray(); minLevelStr == "ALL" || minLevelStr == "DEBUG" ||
-		minLevelStr == "0") {
+	                                                                                       minLevelStr == "0") {
 		q->minLevel = QtDebugMsg;
 	} else if (minLevelStr == "WARNING" || minLevelStr == "WARN" || minLevelStr == "1") {
 		q->minLevel = QtWarningMsg;
@@ -98,13 +99,13 @@ void Logger_p::FileLoggerPrivate::refreshSettings() {
 		close();
 		open();
 	}
-	Logger_p::FileLogger::mutex.unlock();
+	FileLogger::mutex.unlock();
 }
 
-/*!
- *  \FileLogger
+/**
+ * class FileLogger
  */
-Logger_p::FileLogger::FileLogger(QSettings* settings, const int refreshInterval, QObject* parent)
+Logger::FileLogger::FileLogger(QSettings* settings, const int refreshInterval, QObject* parent)
 : Logger(parent), d_ptr(new FileLoggerPrivate(this)) {
 	Q_ASSERT(settings != nullptr);
 	Q_ASSERT(refreshInterval >= 0);
@@ -115,13 +116,14 @@ Logger_p::FileLogger::FileLogger(QSettings* settings, const int refreshInterval,
 	d_ptr->m_flushTimer.start(1000, this);
 	d_ptr->refreshSettings();
 }
-Logger_p::FileLogger::~FileLogger() {
+
+Logger::FileLogger::~FileLogger() {
 	Q_D(FileLogger);
 
 	d->close();
 }
 
-void Logger_p::FileLogger::write(const LogMessage* logMessage) {
+void Logger::FileLogger::write(const LogMessage* logMessage) {
 	Q_D(FileLogger);
 
 	if (d->m_file) {
@@ -137,7 +139,7 @@ void Logger_p::FileLogger::write(const LogMessage* logMessage) {
 	Logger::write(logMessage);
 }
 
-void Logger_p::FileLogger::timerEvent(QTimerEvent* event) {
+void Logger::FileLogger::timerEvent(QTimerEvent* event) {
 	Q_D(FileLogger);
 
 	if (!event) {

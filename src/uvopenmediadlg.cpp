@@ -3,10 +3,10 @@
 #include <QLabel>
 #include <QVBoxLayout>
 
-#include "uvconf.hpp"
-#include "uvdevice.hpp"
+#include "conf/uvconf.hpp"
 #include "framelessMessageBox/uvfiledialog.hpp"
 #include "framelessMessageBox/uvmessagebox.hpp"
+#include "global/uvdevice.hpp"
 
 /**
  * class CUVFileTab

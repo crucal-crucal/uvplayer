@@ -1,6 +1,5 @@
 ﻿#include "uvtable.hpp"
 
-
 void combine(const CUVTableCell& cell1, const CUVTableCell& cell2, CUVTableCell& comb) {
 	comb.r1 = std::min(cell1.r1, cell2.r1);
 	comb.r2 = std::max(cell1.r2, cell2.r2);

@@ -2,7 +2,7 @@
 
 #include <QMainWindow>
 
-#include "appdef.hpp"
+#include "def/appdef.hpp" // NOLINT
 
 class CUVMainWindowPrivate;
 

@@ -1,9 +1,9 @@
 ﻿#include "uvmultiview.hpp"
 
-#include "uvconf.hpp"
-#include "uvdef.hpp"
-#include "framelessMessageBox/uvmessagebox.hpp"
 #include "uvmultiview_p.hpp"
+#include "conf/uvconf.hpp"
+#include "def/uvdef.hpp"
+#include "framelessMessageBox/uvmessagebox.hpp"
 
 #define SEPARATOR_LINE_WIDTH 1
 
@@ -277,6 +277,5 @@ void CUVMultiView::mouseDoubleClickEvent(QMouseEvent* e) {
 
 	if (CUVVideoWidget* player = d->getPlayerByPos(e->pos())) {
 		d->stretch(player);
-		setLayout(1, 1);
 	}
 }

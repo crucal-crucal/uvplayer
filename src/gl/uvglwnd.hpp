@@ -1,8 +1,8 @@
 ﻿#pragma once
 
 
-#include "uvvideownd.hpp"
 #include "uvglwidget.hpp"
+#include "video/uvvideownd.hpp"
 
 class CUVGLWnd : public CUVVideoWnd, CUVGLWidget {
 public:

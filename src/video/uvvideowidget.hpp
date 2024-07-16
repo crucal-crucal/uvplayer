@@ -1,11 +1,11 @@
 ﻿#pragma once
 
-#include "avdef.hpp"
-#include "uvglwnd.hpp"
-#include "uvmedia.hpp"
 #include "uvvideoplayer.hpp"
 #include "uvvideotitlebar.hpp"
 #include "uvvideotoolbar.hpp"
+#include "def/avdef.hpp"
+#include "gl/uvglwnd.hpp"
+#include "global/uvmedia.hpp"
 
 class CUVVideoWidget final : public QFrame {
 	Q_OBJECT

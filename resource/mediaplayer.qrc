@@ -29,7 +29,7 @@
         <file>image/timeshow.png</file>
         <file>image/voice.png</file>
         <file>image/close.png</file>
-        <file>skin/uvplayer.qss</file>
+        <file>skin/mediaplayer.qss</file>
         <file>skin/dark/add_bottom.png</file>
         <file>skin/dark/add_left.png</file>
         <file>skin/dark/add_right.png</file>

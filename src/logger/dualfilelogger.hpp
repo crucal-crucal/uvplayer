@@ -4,14 +4,14 @@
 
 #include "logger.hpp"
 
-namespace Logger_p {
+namespace Logger {
 class DualFileLoggerPrivate;
 
 /**
  * @brief 同时将日志消息写入两个日志文件
  * @see FileLogger 详细日志描述
  */
-class LOGGER_P_EXPORT DualFileLogger final : public Logger {
+class LOGGER_EXPORT DualFileLogger final : public Logger {
 	Q_OBJECT
 	Q_DISABLE_COPY(DualFileLogger)
 	Q_DECLARE_PRIVATE(DualFileLogger)

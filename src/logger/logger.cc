@@ -18,27 +18,27 @@ static QMutex nonRecursiveMutex(QMutex::NonRecursive);
 
 #include "logger_p.hpp"
 
-/*!
- *  \LoggerPrivate
- *  \internal
+/**
+ * class LoggerPrivate
+ * Internal class for Logger
  */
-Logger_p::Logger* Logger_p::LoggerPrivate::defaultLogger = nullptr;
+Logger::Logger* Logger::LoggerPrivate::defaultLogger = nullptr;
 
-QThreadStorage<QHash<QString, QString>*> Logger_p::LoggerPrivate::logVars{};
+QThreadStorage<QHash<QString, QString>*> Logger::LoggerPrivate::logVars{};
 
-Logger_p::LoggerPrivate::LoggerPrivate(Logger* q): q_ptr(q) {
+Logger::LoggerPrivate::LoggerPrivate(Logger* q): q_ptr(q) {
 }
 
-Logger_p::LoggerPrivate::~LoggerPrivate() = default;
+Logger::LoggerPrivate::~LoggerPrivate() = default;
 
-void Logger_p::LoggerPrivate::initializeThreadLocalData() {
-	QMutexLocker locker(&Logger_p::Logger::mutex);
+void Logger::LoggerPrivate::initializeThreadLocalData() {
+	QMutexLocker locker(&Logger::Logger::mutex);
 	if (!logVars.hasLocalData()) {
 		logVars.setLocalData(new QHash<QString, QString>());
 	}
 }
 
-void Logger_p::LoggerPrivate::msgHandler(const QtMsgType type, const QString& message, const QString& file, const QString& function, const int line) {
+void Logger::LoggerPrivate::msgHandler(const QtMsgType type, const QString& message, const QString& file, const QString& function, const int line) {
 	// 防止多个线程同时调用这个方法, 但是允许递归调用，这是防止死锁所必需的
 	recursiveMutex.lock();
 	// 当递归调用此方法时退回到 stderr
@@ -58,7 +58,7 @@ void Logger_p::LoggerPrivate::msgHandler(const QtMsgType type, const QString& me
 }
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-void Logger_p::LoggerPrivate::msgHandler5(const QtMsgType type, const QMessageLogContext& context, const QString& message) {
+void Logger::LoggerPrivate::msgHandler5(const QtMsgType type, const QMessageLogContext& context, const QString& message) {
 	Q_UNUSED(context)
 	msgHandler(type, message, context.file, context.function, context.line);
 }
@@ -68,36 +68,36 @@ void Logger_p::Logger::msgHandler4(const QtMsgType type, const char* message) {
 }
 #endif
 
-/*!
- *  \Logger
+/**
+ * class Logger
  */
-QMutex Logger_p::Logger::mutex{};
+QMutex Logger::Logger::mutex{};
 
-Logger_p::Logger::Logger(QObject* parent)
+Logger::Logger::Logger(QObject* parent)
 : QObject(parent), msgFormat("{timestamp} {type} {message}"), timestampFormat("dd.MM.yyyy hh:mm:ss.zzz"), minLevel(QtDebugMsg),
   d_ptr(new LoggerPrivate(this)) {
 }
 
-Logger_p::Logger::Logger(QString msgFormat, QString timestampFormat, const QtMsgType minLevel, const int bufferSize, QObject* parent)
+Logger::Logger::Logger(QString msgFormat, QString timestampFormat, const QtMsgType minLevel, const int bufferSize, QObject* parent)
 : QObject(parent), msgFormat(msgFormat.isEmpty() ? "{timestamp} {type} {message}" : std::move(msgFormat)),
   timestampFormat(timestampFormat.isEmpty() ? "dd.MM.yyyy hh:mm:ss.zzz" : std::move(timestampFormat)),
   minLevel(minLevel), bufferSize(bufferSize), d_ptr(new LoggerPrivate(this)) {
 }
 
-Logger_p::Logger::~Logger() {
+Logger::Logger::~Logger() {
 	Q_D(Logger);
 
-	if (Logger_p::LoggerPrivate::defaultLogger == this) {
+	if (LoggerPrivate::defaultLogger == this) {
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
 		qInstallMessageHandler(nullptr);
 #else
 		qInstallMsgHandler(nullptr);
 #endif
-		Logger_p::LoggerPrivate::defaultLogger = nullptr;
+		LoggerPrivate::defaultLogger = nullptr;
 	}
 }
 
-void Logger_p::Logger::log(const QtMsgType type, const QString& message, const QString& file, const QString& function, const int line) {
+void Logger::Logger::log(const QtMsgType type, const QString& message, const QString& file, const QString& function, const int line) {
 	Q_D(Logger);
 
 	bool bToPrint{ false };
@@ -119,9 +119,9 @@ void Logger_p::Logger::log(const QtMsgType type, const QString& message, const Q
 		case QtWarningMsg: {
 			if (minLevel == QtDebugMsg ||
 #if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
-				minLevel == QtInfoMsg ||
+			    minLevel == QtInfoMsg ||
 #endif
-				minLevel == QtWarningMsg) {
+			    minLevel == QtWarningMsg) {
 				bToPrint = true;
 				break;
 			}
@@ -129,9 +129,9 @@ void Logger_p::Logger::log(const QtMsgType type, const QString& message, const Q
 		case QtCriticalMsg: {
 			if (minLevel == QtDebugMsg ||
 #if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
-				minLevel == QtInfoMsg ||
+			    minLevel == QtInfoMsg ||
 #endif
-				minLevel == QtWarningMsg || minLevel == QtCriticalMsg) {
+			    minLevel == QtWarningMsg || minLevel == QtCriticalMsg) {
 				bToPrint = true;
 				break;
 			}
@@ -149,7 +149,7 @@ void Logger_p::Logger::log(const QtMsgType type, const QString& message, const Q
 			d->buffers.setLocalData(new QList<LogMessage*>());
 		}
 		QList<LogMessage*>* buffer = d->buffers.localData();
-		const auto logMessage = new LogMessage(type, message, Logger_p::LoggerPrivate::logVars.localData(), file, function, line);
+		const auto logMessage = new LogMessage(type, message, LoggerPrivate::logVars.localData(), file, function, line);
 		buffer->append(logMessage);
 		if (buffer->size() > bufferSize) {
 			delete buffer->takeFirst();
@@ -163,7 +163,7 @@ void Logger_p::Logger::log(const QtMsgType type, const QString& message, const Q
 		}
 	} else {
 		if (bToPrint) {
-			const auto log_message = new LogMessage(type, message, Logger_p::LoggerPrivate::logVars.localData(), file, function, line);
+			const auto log_message = new LogMessage(type, message, LoggerPrivate::logVars.localData(), file, function, line);
 			write(log_message);
 			delete log_message;
 		}
@@ -171,26 +171,26 @@ void Logger_p::Logger::log(const QtMsgType type, const QString& message, const Q
 	mutex.unlock();
 }
 
-void Logger_p::Logger::installMsgHandler() {
-	Logger_p::LoggerPrivate::defaultLogger = this;
+void Logger::Logger::installMsgHandler() {
+	LoggerPrivate::defaultLogger = this;
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-	qInstallMessageHandler(Logger_p::LoggerPrivate::msgHandler5);
+	qInstallMessageHandler(LoggerPrivate::msgHandler5);
 #else
 	qInstallMsgHandler(msgHandler4);
 #endif
 }
 
-void Logger_p::Logger::setLogVar(const QString& name, const QString& value) {
-	Logger_p::LoggerPrivate::initializeThreadLocalData();
-	Logger_p::LoggerPrivate::logVars.localData()->insert(name, value);
+void Logger::Logger::setLogVar(const QString& name, const QString& value) {
+	LoggerPrivate::initializeThreadLocalData();
+	LoggerPrivate::logVars.localData()->insert(name, value);
 }
 
-QString Logger_p::Logger::getLogVar(const QString& name) {
-	Logger_p::LoggerPrivate::initializeThreadLocalData();
-	return Logger_p::LoggerPrivate::logVars.localData()->value(name);
+QString Logger::Logger::getLogVar(const QString& name) {
+	LoggerPrivate::initializeThreadLocalData();
+	return LoggerPrivate::logVars.localData()->value(name);
 }
 
-void Logger_p::Logger::clear(const bool buffer, const bool variables) {
+void Logger::Logger::clear(const bool buffer, const bool variables) {
 	Q_D(Logger);
 
 	mutex.lock();
@@ -201,13 +201,13 @@ void Logger_p::Logger::clear(const bool buffer, const bool variables) {
 			delete logMessage;
 		}
 	}
-	if (variables && Logger_p::LoggerPrivate::logVars.hasLocalData()) {
-		Logger_p::LoggerPrivate::logVars.localData()->clear();
+	if (variables && LoggerPrivate::logVars.hasLocalData()) {
+		LoggerPrivate::logVars.localData()->clear();
 	}
 	mutex.unlock();
 }
 
-void Logger_p::Logger::write(const LogMessage* logMessage) {
+void Logger::Logger::write(const LogMessage* logMessage) {
 	fputs(qPrintable(logMessage->toString(msgFormat, timestampFormat)), stderr);
 	fflush(stderr);
 }

@@ -2,7 +2,7 @@
 
 #include <QWidget>
 
-#include "uvframe.hpp"
+#include "frame/uvframe.hpp"
 
 class CUVVideoWnd {
 public:
