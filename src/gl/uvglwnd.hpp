@@ -2,7 +2,7 @@
 
 
 #include "uvglwidget.hpp"
-#include "video/uvvideownd.hpp"
+#include "interface/uvvideownd.hpp"
 
 class CUVGLWnd : public CUVVideoWnd, CUVGLWidget {
 public:

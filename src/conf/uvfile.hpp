@@ -2,22 +2,10 @@
 
 #include <string>
 
-#include "frame/uvbuf.hpp"
+#include "def/uvdef.hpp"
+#include "util/uvbuf.hpp"
 
 #define MAX_PATH 200
-
-#ifndef CR
-#define CR      '\r'
-#endif
-
-#ifndef LF
-#define LF      '\n'
-#endif
-
-#ifndef CRLF
-#define CRLF    "\r\n"
-#endif
-
 
 class CUVFile {
 public:

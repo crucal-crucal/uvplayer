@@ -52,7 +52,3 @@ macro(uv_install_dll)
         install(FILES $<TARGET_PDB_FILE:${TARGET_NAME}> DESTINATION pdb OPTIONAL)
     endif ()
 endmacro()
-
-# 复制 dll 到可执行文件目录
-macro(uv_copy_dll)
-endmacro()

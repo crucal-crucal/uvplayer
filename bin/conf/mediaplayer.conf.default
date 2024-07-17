@@ -13,18 +13,19 @@ timestampFormat=dd.MM.yyyy hh:mm:ss.zzz
 skin = dark
 # 0xAARRGGBB
 palette = 0xFF132D48
-# language = [en, zh_CN, ...]
-language =
+# language = [en_US, zh_CN, ...]
+language = zh_CN
 fontsize = 12
+#fontfamily = Arial
 
 main_window_width = 1280
 main_window_height = 800
-main_window_x =
-main_window_y =
 # [NORMAL=0, MINIMIZED=1, MAXMIZED=2, FULLSCREEN=3]
-main_window_state = 2
+main_window_state = 0
 # rect(x,y,w,h)
 main_window_rect = rect(0,0,0,0)
+
+video_border = 0
 
 menubar_visible = true
 toolbar_visible = true
@@ -36,9 +37,9 @@ mv_row = 1
 mv_col = 1
 mv_fullscreen = false
 
-draw_time = false
-draw_fps = false
-draw_resolution = false
+draw_time = true
+draw_fps = true
+draw_resolution = true
 
 [video]
 frame_cache = 5
@@ -52,7 +53,11 @@ frame_cache = 5
 # aspect_ratio = wxh # ORIGINAL_SIZE
 # aspect_ratio = 800x600 # CUSTOM_SIZE
 
-# renderer = [opengl, sdl, ...]
+# true: Always use the aspect ratio of the source
+# false: Use the aspect ratio of the window
+use_source_aspect_ratio = true
+
+# renderer = [opengl, sdl | sdl2, ...]
 renderer = opengl
 
 # SOFTWARE_DECODE         = 1,

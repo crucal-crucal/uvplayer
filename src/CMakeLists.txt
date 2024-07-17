@@ -50,12 +50,12 @@ if (WIN32)
 endif ()
 
 # sdl
-#set(SDL_DIR ${CMAKE_SOURCE_DIR}/3rdparty/sdl)
-#include_directories(${SDL_DIR}/include)
-#if (WIN32)
-#    link_directories(${SDL_DIR}/lib)
-#    set(SDL_LIBS SDL2)
-#endif ()
+set(SDL_DIR ${CMAKE_SOURCE_DIR}/3rdparty/sdl)
+include_directories(${SDL_DIR}/include)
+if (WIN32)
+    link_directories(${SDL_DIR}/lib)
+    set(SDL_LIBS SDL2)
+endif ()
 
 # logger
 include_directories(logger)
@@ -68,66 +68,94 @@ include_directories(codec)
 include_directories(frame)
 include_directories(gl)
 
-add_executable(${PROJECT_NAME} main.cpp
-        def/appdef.hpp
-        uvmainwindow.cpp
-        uvmainwindow.hpp
-        uvmainwindow_p.hpp
-        uvcenterwidget.cpp
-        uvcenterwidget.hpp
-        uvmultiview.cpp
-        uvmultiview.hpp
-        uvmultiview_p.hpp
-        uvtable.cpp
-        uvtable.hpp
-        codec/uvthread.hpp
-        codec/uvffplayer.cpp
-        codec/uvffplayer.hpp
-        video/uvvideoplayer.hpp
-        def/avdef.hpp
-        global/uvmedia.hpp
-        frame/uvbuf.hpp
-        frame/uvframe.hpp
-        frame/uvframe.cpp
-        global/uvscope.hpp
-        video/uvvideowidget.cpp
-        video/uvvideowidget.hpp
-        video/uvvideotitlebar.cpp
-        video/uvvideotitlebar.hpp
-        video/uvvideotoolbar.cpp
-        video/uvvideotoolbar.hpp
-        video/uvvideownd.cpp
-        video/uvvideownd.hpp
-        uvopenmediadlg.cpp
-        uvopenmediadlg.hpp
-        uvcustomeventtype.hpp
-        gl/uvgl.hpp
-        gl/uvglwidget.cpp
-        gl/uvglwidget.hpp
-        gl/uvgui.hpp
-        gl/uvglwnd.cpp
-        gl/uvglwnd.hpp
-        def/uvdef.hpp
+# src
+set(CONF_SRC
+        conf/uvconf.hpp
+        conf/uvfile.hpp
         conf/uviniparser.cpp
         conf/uviniparser.hpp
-        conf/uvfile.hpp
+)
+
+set(DEF_SRC
+        def/appdef.hpp
+        def/avdef.hpp
+        def/uvdef.hpp
         def/uverr.hpp
-        uvstring/uvstring.cpp
-        uvstring/uvstring.hpp
         def/auvexport.hpp
-        conf/uvconf.hpp
+)
+
+set(GL_SRC
+        gl/uvglwidget.cpp
+        gl/uvglwidget.hpp
+        gl/uvglwnd.cpp
+        gl/uvglwnd.hpp
+)
+
+set(GLOBAL_SRC
+        global/uvmedia.hpp
+        global/uvscope.hpp
         global/uvbase.hpp
         global/uvdevice.hpp
         global/uvfunctions.hpp
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE src/GL)
+set(INTERFACE_SRC
+        interface/uvcenterwidget.cpp
+        interface/uvcenterwidget.hpp
+        interface/uvmultiview.cpp
+        interface/uvmultiview.hpp
+        interface/uvmultiview_p.hpp
+        interface/uvmainwindow.cpp
+        interface/uvmainwindow.hpp
+        interface/uvmainwindow_p.hpp
+        interface/uvtable.cpp
+        interface/uvtable.hpp
+        interface/uvcustomeventtype.hpp
+        interface/uvopenmediadlg.cpp
+        interface/uvopenmediadlg.hpp
+        interface/uvvideoplayer.hpp
+        interface/uvvideotitlebar.cpp
+        interface/uvvideotitlebar.hpp
+        interface/uvvideotoolbar.cpp
+        interface/uvvideotoolbar.hpp
+        interface/uvvideowidget.cpp
+        interface/uvvideowidget.hpp
+        interface/uvvideownd.cpp
+        interface/uvvideownd.hpp
+)
+
+set(SDL2_SRC
+        sdl/uvsdl2Wnd.cpp
+        sdl/uvsdl2Wnd.hpp
+)
+
+set(UTIL_SRC
+        util/uvsdl_util.hpp
+        util/uvbuf.hpp
+        util/uvframe.hpp
+        util/uvframe.cpp
+        util/uvgl.hpp
+        util/uvgui.hpp
+        util/uvffmpeg_util.hpp
+)
+
+set(VIDEO_SRC
+        video/uvthread.hpp
+        video/uvffplayer.cpp
+        video/uvffplayer.hpp
+        interface/uvvideowndfactory.hpp
+)
+
+add_executable(${PROJECT_NAME} WIN32
+        main.cpp ${CONF_SRC} ${DEF_SRC} ${GL_SRC} ${GLOBAL_SRC} ${INTERFACE_SRC} ${SDL2_SRC} ${UTIL_SRC} ${VIDEO_SRC}
+)
 # Qt
 target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::OpenGL Qt5::Multimedia)
 # 3rdparty, OpenGL & SDL & FFmpeg & GLEW
 target_compile_definitions(${PROJECT_NAME} PRIVATE -DGLEW_STATIC)
 target_link_libraries(${PROJECT_NAME}
         ${FFMPEG_LIBS}
+        ${SDL_LIBS}
         glew32s
         opengl32
 )
@@ -137,6 +165,7 @@ target_link_libraries(${PROJECT_NAME}
         framelessMessageBox
         uvstring
 )
+
 # logger => Qt Release版本中如果需要定位到日志文件，需要添加此宏
 add_definitions(-DQT_MESSAGELOGCONTEXT)
 
@@ -159,8 +188,9 @@ install(FILES ${RCCFILE} DESTINATION bin)
 install(FILES ${CONF_FILE_PATH} DESTINATION bin/conf)
 install(FILES ${FFMPEG_DLLS} DESTINATION bin)
 install(FILES ${GLEW_DLLS} DESTINATION bin)
+install(FILES ${SDL_DLLS} DESTINATION bin)
 
-# copy ffmpeg dlls, glew dlls to output directory
+# copy ffmpeg dlls, glew dlls, sdl2 dlls to output directory
 if (WIN32)
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -169,7 +199,10 @@ if (WIN32)
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${GLEW_DLLS}
             $<TARGET_FILE_DIR:${PROJECT_NAME}>
-            COMMENT "Copying ffmpeg dlls, glew dlls to output directory"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${SDL_DLLS}
+            $<TARGET_FILE_DIR:${PROJECT_NAME}>
+            COMMENT "Copying ffmpeg dlls, glew dlls, sdl2 dlls to output directory"
     )
 endif ()
 

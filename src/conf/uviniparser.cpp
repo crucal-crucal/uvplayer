@@ -3,6 +3,7 @@
 #include <sstream>
 
 #include "uvfile.hpp"
+#include "def/uvdef.hpp"
 #include "def/uverr.hpp"
 #include "uvstring/uvstring.hpp"
 

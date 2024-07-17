@@ -6,9 +6,9 @@
 #include <atomic>
 #include <QOpenGLWidget>
 
-#include "uvframe.hpp"
-#include "uvgl.hpp"
-#include "uvgui.hpp"
+#include "util/uvframe.hpp"
+#include "util/uvgl.hpp"
+#include "util/uvgui.hpp"
 
 void bindTexture(GLTexture* tex, QImage* img);
 

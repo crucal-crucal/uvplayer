@@ -1,13 +1,11 @@
 ﻿#pragma once
 
-#include <QCameraInfo>
-#include <QCoreApplication>
 #include <QAudioDeviceInfo>
+#include <QCameraInfo>
 
 using CameraList = QList<QCameraInfo>;
 using AudioInputList = QList<QAudioDeviceInfo>;
 using AudioOutputList = QList<QAudioDeviceInfo>;
-
 
 class CUVDevice {
 	Q_DISABLE_COPY_MOVE(CUVDevice)

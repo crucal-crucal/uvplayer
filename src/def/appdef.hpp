@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #define APP_NAME "mediaplayer"
-#define APP_VERSION "1.0.0"
+#define APP_VERSION "1.0.1"
 
 #define COMPANY_NAME ""
 #define COMPANY_URL ""

@@ -2,7 +2,9 @@
 
 #include <functional>
 
-typedef std::function<void()> Function;
+#include "def/uvdef.hpp"
+
+using Function = std::function<void()>;
 
 // same as golang defer
 class Defer {
@@ -16,8 +18,6 @@ private:
 	Function _fn;
 };
 
-#define CONCAT_IMPL(x, y) x##y
-#define CONCAT(x, y) CONCAT_IMPL(x, y)
 #define defer(code) Defer CONCAT(_defer_, __LINE__)([&](){code;});
 
 class ScopeCleanup {

@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <QMetaType>
+
 typedef enum {
 	PIX_FMT_NONE = 0,
 
@@ -29,7 +31,6 @@ typedef enum {
 	PIX_FMT_RGB_LAST,
 } pix_fmt_e;
 
-#if 0
 static bool pix_fmt_is_yuv(const int type) { // NOLINT
 	return type > PIX_FMT_YUV_FIRST && type < PIX_FMT_YUV_LAST;
 }
@@ -65,7 +66,6 @@ static int pix_fmt_bpp(const int type) {
 	}
 	return 0;
 }
-#endif
 
 typedef enum {
 	MEDIA_TYPE_FILE = 0,
@@ -77,14 +77,12 @@ typedef enum {
 #define DEFAULT_MEDIA_TYPE  MEDIA_TYPE_CAPTURE
 #define MEDIA_TYPE_NONE     MEDIA_TYPE_NB
 
-#if 0
 typedef enum {
 	AVSTREAM_TYPE_VIDEO,
 	AVSTREAM_TYPE_AUDIO,
 	AVSTREAM_TYPE_SUBTITLE,
 	AVSTREAM_TYPE_NB
 } avstream_type_e;
-#endif
 
 typedef enum {
 	ASPECT_FULL,           // 100%
@@ -101,3 +99,5 @@ typedef struct aspect_ratio_s {
 	aspect_ratio_e type{};
 	int w{}, h{};
 } aspect_ratio_t;
+
+Q_DECLARE_METATYPE(aspect_ratio_t)

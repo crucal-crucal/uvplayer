@@ -48,5 +48,7 @@
         <file>skin/dark/radiobutton_checked_disable.png</file>
         <file>skin/dark/radiobutton_unchecked.png</file>
         <file>skin/dark/radiobutton_unchecked_disable.png</file>
+        <file>translation/zh_CN.qm</file>
+        <file>translation/en_US.qm</file>
     </qresource>
 </RCC>
