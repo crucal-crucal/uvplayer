@@ -84,7 +84,7 @@ CUVTableCell CUVTable::merge(const int lt, const int rb) {
 		}
 
 		const int id = (comb.r1 - 1) * col + comb.c1;
-		m_cells.at(id) = comb;
+		m_cells[id] = comb;
 
 		return comb;
 	}

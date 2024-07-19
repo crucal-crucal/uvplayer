@@ -101,3 +101,35 @@ typedef struct aspect_ratio_s {
 } aspect_ratio_t;
 
 Q_DECLARE_METATYPE(aspect_ratio_t)
+
+//----------------video-----------------------
+
+#define ERRBUF_SIZE  4096
+
+// 进程状态
+enum eProcessState {
+	eProcessState_Unknown = -1, // 未知
+	eProcessState_Online,       // 在线
+	eProcessState_Online_Push,  // 在线推送
+	eProcessState_Offline,      // 离线
+};
+
+// 推送流信息
+struct LXPushStreamInfo {
+	// 推送流类型
+	enum PushStream {
+		Video = 0x1,
+		Audio = 0x2
+	};
+
+	QString strAddress{ "" };                                     // 推送地址
+	float fVideoBitRate{ 0.0 };                                   // 视频比特率
+	PushStream eStream{ static_cast<PushStream>(Video | Audio) }; // 推流类型
+	int nWidth{ 0 };                                              // 视频宽度
+	int nHeight{ 0 };                                             // 视频高度
+	int nFrameRateNum{ 1 };                                       // 视频帧率分子
+	int nFrameRateDen{ 25 };                                      // 视频帧率分母
+	int nColorDepth{ 24 };                                        // 视频颜色深度
+	int nAudioBitRate{ 0 };                                       // 音频比特率
+	int nAudioSampleRate{ 0 };                                    // 音频采样率
+};

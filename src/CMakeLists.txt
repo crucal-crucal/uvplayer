@@ -2,13 +2,13 @@
 uv_setup_Qt()
 
 # ffmpeg
-set(FFMPEG_DIR ${CMAKE_SOURCE_DIR}/3rdparty/ffmpeg)
+set(FFMPEG_DIR ${CMAKE_SOURCE_DIR}/3rdparty/ffmpeg-5.0.1)
 include_directories(${FFMPEG_DIR}/include)
 if (WIN32)
     link_directories(${FFMPEG_DIR}/lib)
 endif ()
 
-option(FFMPEG_CHECK_VERSION "Check ffmpeg version" OFF)
+option(FFMPEG_CHECK_VERSION "Check ffmpeg version" ON)
 
 if (FFMPEG_CHECK_VERSION)
     # Function to extract FFmpeg version
@@ -122,6 +122,7 @@ set(INTERFACE_SRC
         interface/uvvideowidget.hpp
         interface/uvvideownd.cpp
         interface/uvvideownd.hpp
+        interface/uvvideowndfactory.hpp
 )
 
 set(SDL2_SRC
@@ -143,10 +144,11 @@ set(VIDEO_SRC
         video/uvthread.hpp
         video/uvffplayer.cpp
         video/uvffplayer.hpp
-        interface/uvvideowndfactory.hpp
+#        video/uvcodec.cpp
+#        video/uvcodec.hpp
 )
 
-add_executable(${PROJECT_NAME} WIN32
+add_executable(${PROJECT_NAME}
         main.cpp ${CONF_SRC} ${DEF_SRC} ${GL_SRC} ${GLOBAL_SRC} ${INTERFACE_SRC} ${SDL2_SRC} ${UTIL_SRC} ${VIDEO_SRC}
 )
 # Qt
@@ -161,6 +163,7 @@ target_link_libraries(${PROJECT_NAME}
 )
 # app
 target_link_libraries(${PROJECT_NAME}
+        uvmaterialslider
         logger
         framelessMessageBox
         uvstring
@@ -173,6 +176,8 @@ add_definitions(-DQT_MESSAGELOGCONTEXT)
 add_subdirectory(logger)
 add_subdirectory(framelessMessageBox)
 add_subdirectory(uvstring)
+add_subdirectory(uvshared)
+add_subdirectory(uvmaterialslider)
 
 # dependencies required for installation and runtime
 file(GLOB FFMPEG_DLLS ${FFMPEG_DIR}/bin/*.dll)

@@ -1,13 +1,27 @@
 ﻿# [root]
 
 [logger]
-fileName=../logs/stdout.log
-maxSize=1000000
-maxBackups=10
-bufferSize=100
-minLevel=DEBUG
-msgFormat={timestamp} {typeNr} {type} {thread} {message} in {file} line {line} function {function}
-timestampFormat=dd.MM.yyyy hh:mm:ss.zzz
+fileName = ../logs/stdout.log
+maxSize = 1000000
+maxBackups = 10
+bufferSize = 100
+minLevel = DEBUG
+msgFormat = {timestamp} {typeNr} {type} {thread} {message} in {file} line {line} function {function}
+timestampFormat = dd.MM.yyyy hh:mm:ss.zzz
+
+[ffmpeg_log]
+fileName = /logs/ffmpeg.log
+# 日志等级（loglevel）:
+#  -8  : AV_LOG_QUIET     - 不输出任何信息
+#   0  : AV_LOG_PANIC     - 发生了严重错误，程序即将崩溃
+#   8  : AV_LOG_FATAL     - 无法恢复的错误，如格式缺少必要的头信息
+#  16  : AV_LOG_ERROR     - 错误，可能会影响后续数据
+#  24  : AV_LOG_WARNING   - 警告，可能不会导致问题
+#  32  : AV_LOG_INFO      - 标准信息
+#  40  : AV_LOG_VERBOSE   - 详细信息，主要用于libav*开发者
+#  48  : AV_LOG_DEBUG     - 极其详细的调试信息
+#  56  : AV_LOG_TRACE     - 极度详细的跟踪信息
+loglevel = 56
 
 [ui]
 skin = dark
@@ -66,7 +80,7 @@ renderer = opengl
 decode_mode = 3
 
 # pix_fmt = [YUV, RGB]
-dst_pix_fmt = YUV
+dst_pix_fmt = RGB
 
 # rtsp_transport = [tcp, udp]
 rtsp_transport = tcp

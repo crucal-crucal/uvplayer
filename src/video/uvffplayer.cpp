@@ -1,5 +1,6 @@
 ﻿#include "uvffplayer.hpp"
 
+#include <QDateTime>
 #include <QDebug>
 
 #include "conf/uvconf.hpp"
@@ -40,7 +41,46 @@ static int interrupt_callback(void* opaque) {
 	return 0;
 }
 
+static const char* av_log_level_str(const int level) {
+	switch (level) {
+		case AV_LOG_QUIET: return " QUIET ";
+		case AV_LOG_PANIC: return " PANIC ";
+		case AV_LOG_FATAL: return " FATAL ";
+		case AV_LOG_ERROR: return " ERROR ";
+		case AV_LOG_WARNING: return "WARNING ";
+		case AV_LOG_INFO: return " INFO  ";
+		case AV_LOG_VERBOSE: return "VERBOSE";
+		case AV_LOG_DEBUG: return " DEBUG ";
+		case AV_LOG_TRACE: return " TRACE ";
+		default: return "UNKNOWN";
+	}
+}
+
+static std::string getCurrentTimeWithMicroseconds() {
+	using namespace std::chrono;
+	const auto now = system_clock::now();
+	const auto us = duration_cast<microseconds>(now.time_since_epoch()) % 1000000;
+	const auto current_time = system_clock::to_time_t(now);
+	std::tm bt{};
+	localtime_s(&bt, &current_time);
+
+	char buffer[64];
+	snprintf(buffer, sizeof(buffer), "%04d-%02d-%02d %02d:%02d:%02d.%06lld",
+	         bt.tm_year + 1900, bt.tm_mon + 1, bt.tm_mday,
+	         bt.tm_hour, bt.tm_min, bt.tm_sec, us.count());
+
+	return { buffer };
+}
+
+FILE* CUVFFPlayer::m_pLogFile{ nullptr };
+QString CUVFFPlayer::ff_logPath{};
+
 CUVFFPlayer::CUVFFPlayer() : CUVVideoPlayer(), CUVThread() {
+	ff_logPath = qApp->applicationDirPath() + QString::fromStdString(g_confile->getValue("fileName", "ffmpeg_log")); // NOLINT
+	// 设置日志级别
+	av_log_set_level(g_confile->get<int>("loglevel", "ffmpeg_log", AV_DEFAULT_LOGLEVEL));
+	// 设置回调函数，写入日志信息
+	av_log_set_callback(logCallBack);
 	fmt_opts = nullptr;
 	codec_opts = nullptr;
 	fmt_ctx = nullptr;
@@ -57,8 +97,6 @@ CUVFFPlayer::CUVFFPlayer() : CUVVideoPlayer(), CUVThread() {
 		avformat_network_init();
 		avdevice_register_all();
 		list_devices();
-	} else {
-		qCritical() << "CUVFFPlayer::CUVFFPlayer() ffmpeg already initialized";
 	}
 }
 
@@ -69,10 +107,28 @@ CUVFFPlayer::~CUVFFPlayer() {
 int CUVFFPlayer::seek(const int64_t ms) {
 	if (fmt_ctx) {
 		clear_frame_cache();
-		qDebug() << "seek => " << ms << " ms";
+		av_log(nullptr, AV_LOG_DEBUG, "seek => %ld ms\n", ms);
 		return av_seek_frame(fmt_ctx, video_stream_index, (start_time + ms) / 1000 / (double) video_time_base_num * video_time_base_den, AVSEEK_FLAG_BACKWARD); // NOLINT
 	}
 	return 0;
+}
+
+void CUVFFPlayer::logCallBack(void* ptr, int level, const char* fmt, va_list vl) { // NOLINT
+	if (!m_pLogFile) {
+		m_pLogFile = fopen(ff_logPath.toStdString().c_str(), "w+"); // NOLINT
+	}
+	if (m_pLogFile) {
+		// 构建时间戳格式
+		char timeFmt[1024]{};
+		int nRet = sprintf(timeFmt, "%s  [%s]   %s", getCurrentTimeWithMicroseconds().c_str(), av_log_level_str(level), fmt); // NOLINT
+		if (nRet < 0 || nRet >= sizeof(timeFmt)) {
+			return;
+		}
+		// 将格式化后的日志信息写入文件
+		vfprintf(m_pLogFile, timeFmt, vl);
+		// 刷新缓冲区
+		fflush(m_pLogFile);
+	}
 }
 
 bool CUVFFPlayer::doPrepare() {
@@ -88,9 +144,10 @@ bool CUVFFPlayer::doPrepare() {
 }
 
 void CUVFFPlayer::doTask() {
+	char errBuf[ERRBUF_SIZE]{};
 	// loop until get a video frame
 	while (!quit) {
-		av_init_packet(video_packet);
+		// av_init_packet(video_packet);
 
 		fmt_ctx->interrupt_callback.callback = interrupt_callback; // 设置中断回调
 		fmt_ctx->interrupt_callback.opaque = this;
@@ -99,7 +156,6 @@ void CUVFFPlayer::doTask() {
 		int ret = av_read_frame(fmt_ctx, video_packet);
 		fmt_ctx->interrupt_callback.callback = nullptr;
 		if (ret != 0) {
-			qDebug() << "video No frame: " << ret;
 			if (!quit) {
 				if (ret == AVERROR_EOF || avio_feof(fmt_ctx->pb)) {
 					eof = 1;
@@ -119,14 +175,16 @@ void CUVFFPlayer::doTask() {
 		if (video_packet->stream_index == video_stream_index) {
 			ret = avcodec_send_packet(video_codec_ctx, video_packet);
 			if (ret != 0) {
-				qCritical() << "video avcodec_send_packet error: " << ret;
+				av_strerror(ret, errBuf, ERRBUF_SIZE);
+				av_log(nullptr, AV_LOG_ERROR, "send packet error: %s\n", errBuf);
 				return;
 			}
 
 			ret = avcodec_receive_frame(video_codec_ctx, video_frame);
 			if (ret != 0) {
 				if (ret != -EAGAIN) {
-					qCritical() << "video avcodec_receive_frame error: " << ret;
+					av_strerror(ret, errBuf, ERRBUF_SIZE);
+					av_log(nullptr, AV_LOG_ERROR, "video avcodec_receive_frame error: %s\n", errBuf);
 					return;
 				}
 			} else {
@@ -136,7 +194,8 @@ void CUVFFPlayer::doTask() {
 	}
 
 	if (sws_ctx) {
-		if (const int h = sws_scale(sws_ctx, video_frame->data, video_frame->linesize, 0, video_frame->height, data, linesize); h <= 0 || h != video_frame->height) {
+		const int h = sws_scale(sws_ctx, video_frame->data, video_frame->linesize, 0, video_frame->height, data, linesize);
+		if (h <= 0 || h != video_frame->height) {
 			return;
 		}
 	}
@@ -155,6 +214,7 @@ bool CUVFFPlayer::doFinish() {
 }
 
 int CUVFFPlayer::open() {
+	char errBuf[ERRBUF_SIZE]{};
 	std::string ifile;
 
 	AVInputFormat* ifmt{ nullptr };
@@ -170,12 +230,12 @@ int CUVFFPlayer::open() {
             constexpr char drive[] = "avfoundation";
 #endif
 #ifdef FFMPEG_VERSION_GTE_5_0_0
-            ifmt = const_cast<AVInputFormat*>(av_find_input_format(drive));
+			ifmt = const_cast<AVInputFormat*>(av_find_input_format(drive));
 #else
 			ifmt = av_find_input_format(drive);
 #endif
 			if (!ifmt) {
-				std::cerr << "Can not find dshow" << std::endl;
+				av_log(nullptr, AV_LOG_ERROR, "Can not find dshow\n");
 				return -5;
 			}
 		}
@@ -187,12 +247,14 @@ int CUVFFPlayer::open() {
 		default:
 			return -10;
 	}
-	qDebug() << "source: " << QString::fromStdString(ifile);
+
+	av_log(nullptr, AV_LOG_INFO, "source: %s\n", ifile.c_str());
 
 	int ret = 0;
 	fmt_ctx = avformat_alloc_context();
 	if (!fmt_ctx) {
-		qCritical() << "avformat_alloc_context error";
+		av_strerror(ret, errBuf, ERRBUF_SIZE);
+		av_log(nullptr, AV_LOG_ERROR, "avformat_alloc_context error: %s\n", errBuf);
 		ret = -10;
 		return ret;
 	}
@@ -219,7 +281,8 @@ int CUVFFPlayer::open() {
 	block_starttime = time(nullptr);
 	ret = avformat_open_input(&fmt_ctx, ifile.c_str(), ifmt, &fmt_opts);
 	if (ret != 0) {
-		std::cerr << "Open input file: " << ifile << " failed: " << ret << std::endl;
+		av_strerror(ret, errBuf, ERRBUF_SIZE);
+		av_log(nullptr, AV_LOG_ERROR, "open input error: %s\n", errBuf);
 		return ret;
 	}
 	fmt_ctx->interrupt_callback.callback = nullptr;
@@ -231,27 +294,28 @@ int CUVFFPlayer::open() {
 
 	ret = avformat_find_stream_info(fmt_ctx, nullptr);
 	if (ret != 0) {
-		qCritical() << "Can not find stream: " << ret;
+		av_strerror(ret, errBuf, ERRBUF_SIZE);
+		av_log(nullptr, AV_LOG_ERROR, "find stream info error: %s\n", errBuf);
 		return ret;
 	}
-	qDebug() << "stream_num: " << fmt_ctx->nb_streams;
+	av_log(nullptr, AV_LOG_DEBUG, "stream_num: %d\n", fmt_ctx->nb_streams);
 
 	video_stream_index = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
 	audio_stream_index = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_AUDIO, -1, -1, nullptr, 0);
 	subtitle_stream_index = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_SUBTITLE, -1, -1, nullptr, 0);
-	qDebug() << "video_stream_index = " << video_stream_index;
-	qDebug() << "audio_stream_index = " << audio_stream_index;
-	qDebug() << "subtitle_stream_index = " << subtitle_stream_index;
+	av_log(nullptr, AV_LOG_DEBUG, "video_stream_index = %d\n", video_stream_index);
+	av_log(nullptr, AV_LOG_DEBUG, "audio_stream_index = %d\n", audio_stream_index);
+	av_log(nullptr, AV_LOG_DEBUG, "subtitle_stream_index = %d\n", subtitle_stream_index);
 
 	// 初始化视频解码器
 	if (video_stream_index >= 0) {
 		AVStream* video_stream = fmt_ctx->streams[video_stream_index];
 		video_time_base_num = video_stream->time_base.num;
 		video_time_base_den = video_stream->time_base.den;
-		qDebug() << "video_stream time_base = " << video_stream->time_base.num << " / " << video_stream->time_base.den;
+		av_log(nullptr, AV_LOG_DEBUG, "video_stream time base = %d / %d\n", video_stream->time_base.num, video_stream->time_base.den);
 
 		AVCodecParameters* codec_param = video_stream->codecpar;
-		qDebug() << "codec_id = " << codec_param->codec_id << " => " << avcodec_get_name(codec_param->codec_id);
+		av_log(nullptr, AV_LOG_DEBUG, "codec_id = %d => %s\n", codec_param->codec_id, avcodec_get_name(codec_param->codec_id));
 
 		AVCodec* codec{ nullptr };
 		if (decode_mode != SOFTWARE_DECODE) {
@@ -265,38 +329,38 @@ try_hardware_decode:
 				real_decode_mode = UVARDWARE_DECODE_QSV;
 			}
 #ifdef FFMPEG_VERSION_GTE_5_0_0
-            codec = const_cast<AVCodec *>(avcodec_find_decoder_by_name(decoder.c_str()));
+			codec = const_cast<AVCodec*>(avcodec_find_decoder_by_name(decoder.c_str()));
 #else
 			codec = avcodec_find_decoder_by_name(decoder.c_str());
 #endif
 			if (!codec) {
-				qCritical() << "Can not find decoder " << QString::fromStdString(decoder);
+				av_log(nullptr, AV_LOG_ERROR, "Can not find decoder %s\n", decoder.c_str());
 			}
-			qDebug() << "codec = " << QString::fromStdString(decoder);
+			av_log(nullptr, AV_LOG_DEBUG, "decoder = %s\n", decoder.c_str());
 		}
 
 		if (!codec) {
 try_software_decode:
 #ifdef FFMPEG_VERSION_GTE_5_0_0
-            codec = const_cast<AVCodec *>(avcodec_find_decoder(codec_param->codec_id));
+			codec = const_cast<AVCodec*>(avcodec_find_decoder(codec_param->codec_id));
 #else
 			codec = avcodec_find_decoder(codec_param->codec_id);
 #endif
 			if (!codec) {
-				qCritical() << "Can not find decoder " << avcodec_get_name(codec_param->codec_id);
+				av_log(nullptr, AV_LOG_ERROR, "Can not find decoder %s\n", avcodec_get_name(codec_param->codec_id));
 				ret = -30;
 				return ret;
 			} else {
-				qInfo() << "Use software decoder " << avcodec_get_name(codec_param->codec_id);
+				av_log(nullptr, AV_LOG_INFO, "Use software decoder %s\n", avcodec_get_name(codec_param->codec_id));
 			}
 			real_decode_mode = SOFTWARE_DECODE;
 		}
 
-		qDebug() << "codec = " << codec->name << " => " << avcodec_get_name(codec_param->codec_id);
+		av_log(nullptr, AV_LOG_DEBUG, "codec = %s => %s\n", codec->name, avcodec_get_name(codec_param->codec_id));
 
 		video_codec_ctx = avcodec_alloc_context3(codec);
 		if (!video_codec_ctx) {
-			qCritical() << "avcodec_alloc_context3 error";
+			av_log(nullptr, AV_LOG_ERROR, "avcodec_alloc_context3 error\n");
 			ret = -40;
 			return ret;
 		}
@@ -309,7 +373,8 @@ try_software_decode:
 
 		ret = avcodec_parameters_to_context(video_codec_ctx, codec_param);
 		if (ret != 0) {
-			qCritical() << "avcodec_parameters_to_context error: " << ret;
+			av_strerror(ret, errBuf, ERRBUF_SIZE);
+			av_log(nullptr, AV_LOG_ERROR, "avcodec_parameters_to_context error: %s\n", errBuf);
 			return ret;
 		}
 
@@ -320,10 +385,11 @@ try_software_decode:
 		ret = avcodec_open2(video_codec_ctx, codec, &codec_opts);
 		if (ret != 0) {
 			if (real_decode_mode != SOFTWARE_DECODE) {
-				qWarning() << "Can not open hardware codec error: " << ret << ", try software codec.";
+				av_log(nullptr, AV_LOG_WARNING, "Can not open hardware codec error: %d, try software codec.\n", ret);
 				goto try_software_decode;
 			}
-			qCritical() << "Can not open software codec error: " << ret;
+			av_strerror(ret, errBuf, ERRBUF_SIZE);
+			av_log(nullptr, AV_LOG_ERROR, "Can not open software codec error: %s\n", errBuf);
 			return ret;
 		}
 		video_stream->discard = AVDISCARD_DEFAULT;
@@ -340,9 +406,9 @@ try_software_decode:
 
 		src_pix_fmt = video_codec_ctx->pix_fmt;
 
-		qDebug() << "sw = " << sw << " sh = " << sh << " src_pix_fmt = " << src_pix_fmt << " : " << av_get_pix_fmt_name(src_pix_fmt);
+		av_log(nullptr, AV_LOG_DEBUG, "sw = %d, sh = %d, src_pix_fmt = %d : %s\n", sw, sh, src_pix_fmt, av_get_pix_fmt_name(src_pix_fmt));
 		if (sw <= 0 || sh <= 0 || src_pix_fmt == AV_PIX_FMT_NONE) {
-			qCritical() << "Codec parameters wrong!";
+			av_log(nullptr, AV_LOG_ERROR, "Codec parameters wrong!\n");
 			ret = -45;
 			return ret;
 		}
@@ -358,11 +424,11 @@ try_software_decode:
 				dst_pix_fmt = AV_PIX_FMT_BGR24;
 			}
 		}
-		qDebug() << "dw = " << dw << " dh = " << dh << " dst_pix_fmt = " << dst_pix_fmt << " : " << av_get_pix_fmt_name(dst_pix_fmt);
+		av_log(nullptr, AV_LOG_DEBUG, "dw = %d, dh = %d, dst_pix_fmt = %d, : %s\n", dw, dh, dst_pix_fmt, av_get_pix_fmt_name(dst_pix_fmt));
 
 		sws_ctx = sws_getContext(sw, sh, src_pix_fmt, dw, dh, dst_pix_fmt, SWS_BICUBIC, nullptr, nullptr, nullptr);
 		if (!sws_ctx) {
-			qCritical() << "sws_getContext failed";
+			av_log(nullptr, AV_LOG_ERROR, "sws_getContext failed\n");
 			ret = -50;
 			return ret;
 		}
@@ -375,23 +441,29 @@ try_software_decode:
 		// ARGB
 		m_frame.buf.resize(dw * dh * 4);
 
+		// 确保缓冲区大小正确
 		if (dst_pix_fmt == AV_PIX_FMT_YUV420P) {
+			const int y_size = dw * dh;
 			m_frame.type = PIX_FMT_IYUV;
 			m_frame.bpp = 12;
-			const int y_size = dw * dh;
 			m_frame.buf.len = y_size * 3 / 2;
+
 			data[0] = reinterpret_cast<uint8_t*>(m_frame.buf.base);
 			data[1] = data[0] + y_size;
 			data[2] = data[1] + y_size / 4;
 			linesize[0] = dw;
 			linesize[1] = linesize[2] = dw / 2;
-		} else {
-			dst_pix_fmt = AV_PIX_FMT_BGR24;
+		} else if (dst_pix_fmt == AV_PIX_FMT_BGR24) {
 			m_frame.type = PIX_FMT_BGR;
 			m_frame.bpp = 24;
 			m_frame.buf.len = dw * dh * 3;
+
 			data[0] = reinterpret_cast<uint8_t*>(m_frame.buf.base);
 			linesize[0] = dw * 3;
+		} else {
+			av_log(nullptr, AV_LOG_ERROR, "Unsupported pixel format\n");
+			ret = -51;
+			return ret;
 		}
 
 		// HVideoPlayer member vars
@@ -419,11 +491,9 @@ try_software_decode:
 				start_time = 0;
 			}
 		}
-		qDebug() << "fps = " << fps << " duration = " << duration << " start_time = " << start_time;
-		qDebug() << "Video stream initialized.";
 		CUVThread::setSleepPolicy(CUVThread::SLEEP_UNTIL, 1000 / fps);
 	} else {
-		qCritical() << "Can not find video stream.";
+		av_log(nullptr, AV_LOG_ERROR, "Can not find video stream.\n");
 		ret = -20;
 		return ret;
 	}

@@ -33,7 +33,7 @@ void CUVIniNode::del(const CUVIniNode* pNode) {
 	}
 }
 
-CUVIniNode* CUVIniNode::get(const std::string& label, const Type type) const {
+CUVIniNode* CUVIniNode::get(const std::string& label, const IniType& type) const {
 	for (const auto pNode: children) {
 		if (pNode->type == type && pNode->label == label) {
 			return pNode;

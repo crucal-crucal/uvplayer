@@ -2,7 +2,7 @@
 
 #include "uvmultiview.hpp"
 
-class CUVCenterWidget : public QWidget {
+class CUVCenterWidget final : public QWidget {
 	Q_OBJECT
 
 public:

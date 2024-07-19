@@ -3,7 +3,7 @@
 #include <QLabel>
 #include <QPushButton>
 
-class CUVVideoTitlebar : public QFrame {
+class CUVVideoTitlebar final : public QFrame {
 	Q_OBJECT
 
 public:

@@ -18,12 +18,12 @@ CUVFileTab::CUVFileTab(QWidget* parent) : QWidget(parent) {
 	vbox->addWidget(new QLabel(tr("File:")));
 
 	const auto hbox = new QHBoxLayout;
-	m_pLeFileName = new QLineEdit(this);
+	lineEdit = new QLineEdit(this);
 	if (const std::string str = g_confile->getValue("last_file_source", "media"); !str.empty()) {
-		m_pLeFileName->setText(QString::fromStdString(str));
+		lineEdit->setText(QString::fromStdString(str));
 	}
 
-	hbox->addWidget(m_pLeFileName);
+	hbox->addWidget(lineEdit);
 
 	m_pBtnBrowse = new QPushButton("...");
 	connect(m_pBtnBrowse, &QPushButton::clicked, this, [=]() {
@@ -32,7 +32,7 @@ CUVFileTab::CUVFileTab(QWidget* parent) : QWidget(parent) {
 			"Video Files(*.3gp *.amv *.asf *.avi *.flv *.m2v *.m4v *.mkv *.mp2 *.mp4 *.mpg *.swf *.ts *.rmvb *.wmv *.dav)\n"
 			"All Files(*)"
 		); !file.isEmpty()) {
-			m_pLeFileName->setText(file);
+			lineEdit->setText(file);
 		}
 	});
 	hbox->addWidget(m_pBtnBrowse);
@@ -55,12 +55,12 @@ CUVNetWorkTab::CUVNetWorkTab(QWidget* parent) : QWidget(parent) {
 	vbox->addStretch();
 	vbox->addWidget(new QLabel(tr("Url:")));
 
-	m_pLeURL = new QLineEdit(this);
+	lineEdit = new QLineEdit(this);
 	if (const std::string str = g_confile->getValue("last_network_source", "media"); !str.empty()) {
-		m_pLeURL->setText(QString::fromStdString(str));
+		lineEdit->setText(QString::fromStdString(str));
 	}
 
-	vbox->addWidget(m_pLeURL);
+	vbox->addWidget(lineEdit);
 	vbox->addStretch();
 
 	setLayout(vbox);
@@ -78,14 +78,14 @@ CUVCaptureTab::CUVCaptureTab(QWidget* parent) : QWidget(parent) {
 	vbox->addStretch();
 	vbox->addWidget(new QLabel(tr("Device:")));
 
-	m_pCbCaptureDevice = new QComboBox(this);
+	comboBox = new QComboBox(this);
 
 	const auto devs = CUVDevice::GetCameraList().toVector();
 	for (const auto& dev: devs) {
-		m_pCbCaptureDevice->addItem(dev.description());
+		comboBox->addItem(dev.description());
 	}
 
-	vbox->addWidget(m_pCbCaptureDevice);
+	vbox->addWidget(comboBox);
 	vbox->addStretch();
 
 	setLayout(vbox);
@@ -108,7 +108,7 @@ void CUVOpenMediaDlg::accept() {
 		case MEDIA_TYPE_FILE: {
 			if (const auto filetab = qobject_cast<CUVFileTab*>(tab->currentWidget())) {
 				media.type = MEDIA_TYPE_FILE;
-				media.src = filetab->edit()->text().toUtf8().data();
+				media.src = filetab->lineEdit->text().toUtf8().data();
 				g_confile->setValue("last_file_source", media.src, "media");
 				g_confile->save();
 			}
@@ -117,7 +117,7 @@ void CUVOpenMediaDlg::accept() {
 		case MEDIA_TYPE_NETWORK: {
 			if (const auto nettab = qobject_cast<CUVNetWorkTab*>(tab->currentWidget())) {
 				media.type = MEDIA_TYPE_NETWORK;
-				media.src = nettab->edit()->text().toUtf8().data();
+				media.src = nettab->lineEdit->text().toUtf8().data();
 				g_confile->setValue("last_network_source", media.src, "media");
 				g_confile->save();
 			}
@@ -126,8 +126,8 @@ void CUVOpenMediaDlg::accept() {
 		case MEDIA_TYPE_CAPTURE: {
 			if (const auto captab = qobject_cast<CUVCaptureTab*>(tab->currentWidget())) {
 				media.type = MEDIA_TYPE_CAPTURE;
-				media.src = qPrintable(captab->cmb()->currentText());
-				media.index = captab->cmb()->currentIndex();
+				media.src = qPrintable(captab->comboBox->currentText());
+				media.index = captab->comboBox->currentIndex();
 			}
 			break;
 		}

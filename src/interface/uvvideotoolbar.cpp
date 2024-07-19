@@ -2,6 +2,7 @@
 
 #include <QHBoxLayout>
 
+#include "def/uvdef.hpp"
 #include "global/uvfunctions.hpp"
 
 CUVVideoToolbar::CUVVideoToolbar(QWidget* parent) : QFrame(parent) {
@@ -9,7 +10,15 @@ CUVVideoToolbar::CUVVideoToolbar(QWidget* parent) : QFrame(parent) {
 	initConnect();
 }
 
-CUVVideoToolbar::~CUVVideoToolbar() = default;
+CUVVideoToolbar::~CUVVideoToolbar() {
+	SAFE_DELETE(m_pBtnStart);
+	SAFE_DELETE(m_pBtnPause);
+	SAFE_DELETE(m_pBtnPrev);
+	SAFE_DELETE(m_pBtnStop);
+	SAFE_DELETE(m_pBtnNext);
+	SAFE_DELETE(sldProgress);
+	SAFE_DELETE(m_pLbDuration);
+}
 
 void CUVVideoToolbar::init() {
 	setFixedHeight(50);
@@ -25,9 +34,15 @@ void CUVVideoToolbar::init() {
 	m_pBtnStop->setAutoDefault(true);
 	m_pBtnNext = getPushButton(QPixmap(":/image/next.png"), tr("next"), {}, this);
 
-	m_pSldProgress = new QSlider;
-	m_pSldProgress->setOrientation(Qt::Horizontal);
+	m_pLbCurDuration = new QLabel("00:00:00");
+	m_pLbCurDuration->hide();
+	sldProgress = new CUVMaterialSlider;
+	sldProgress->setOrientation(Qt::Horizontal);
+	sldProgress->setThumbColor(QColor("#f4843c"));
+	sldProgress->custom_hide();
+	sldProgress->setTrackHeight(10);
 	m_pLbDuration = new QLabel("00:00:00");
+	m_pLbDuration->hide();
 
 	const auto hbox = new QHBoxLayout;
 	hbox->setContentsMargins(10,1,10,1);
@@ -44,11 +59,13 @@ void CUVVideoToolbar::init() {
 	hbox->addWidget(m_pBtnNext, 0, Qt::AlignLeft);
 	m_pBtnNext->hide();
 
-	hbox->addSpacing(5);
-	hbox->addWidget(m_pSldProgress);
-	m_pSldProgress->hide();
+	hbox->addSpacing(10);
+	hbox->addWidget(m_pLbCurDuration);
+	hbox->addSpacing(10);
+	hbox->addWidget(sldProgress);
+	hbox->addSpacing(10);
 	hbox->addWidget(m_pLbDuration);
-	m_pLbDuration->hide();
+	hbox->addSpacing(10);
 
 	setLayout(hbox);
 }

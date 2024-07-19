@@ -7,48 +7,39 @@
 
 #include "global/uvmedia.hpp"
 
-class CUVFileTab : public QWidget {
+class CUVFileTab final : public QWidget {
 	Q_OBJECT
 
 public:
 	explicit CUVFileTab(QWidget* parent = nullptr);
 	~CUVFileTab() override;
 
-	[[nodiscard]] QLineEdit* edit() { return m_pLeFileName; }
-
-private:
-	QLineEdit* m_pLeFileName{ nullptr };
+	QLineEdit* lineEdit{ nullptr };
 	QPushButton* m_pBtnBrowse{ nullptr };
 };
 
-class CUVNetWorkTab : public QWidget {
+class CUVNetWorkTab final : public QWidget {
 	Q_OBJECT
 
 public:
 	explicit CUVNetWorkTab(QWidget* parent = nullptr);
 	~CUVNetWorkTab() override;
 
-	[[nodiscard]] QLineEdit* edit() { return m_pLeURL; }
-
-private:
-	QLineEdit* m_pLeURL{ nullptr };
+	QLineEdit* lineEdit{ nullptr };
 };
 
-class CUVCaptureTab : public QWidget {
+class CUVCaptureTab final : public QWidget {
 	Q_OBJECT
 
 public:
 	explicit CUVCaptureTab(QWidget* parent = nullptr);
 	~CUVCaptureTab() override;
 
-	[[nodiscard]] QComboBox* cmb() { return m_pCbCaptureDevice; }
-
-private:
-	QComboBox* m_pCbCaptureDevice{ nullptr };
+	QComboBox* comboBox{ nullptr };
 };
 
 
-class CUVOpenMediaDlg : public QDialog {
+class CUVOpenMediaDlg final : public QDialog {
 	Q_OBJECT
 
 public:

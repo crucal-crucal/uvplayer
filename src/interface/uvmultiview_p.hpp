@@ -29,7 +29,7 @@ public:
 	void stretch(QWidget* wdg);
 
 	CUVVideoWidget* getPlayerByID(int playerid);
-	CUVVideoWidget* getPlayerByPos(const QPoint& pt);
+	CUVVideoWidget* getPlayerByPos(const QPoint& point);
 	CUVVideoWidget* getIdlePlayer();
 
 	CUVTable table{};

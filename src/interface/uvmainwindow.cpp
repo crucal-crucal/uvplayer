@@ -3,10 +3,10 @@
 #include <QMenuBar>
 #include <QSignalMapper>
 #include <QStatusBar>
-#include <uvmessagebox.hpp>
 
 #include "uvcenterwidget.hpp"
 #include "uvmainwindow_p.hpp"
+#include "uvmessagebox.hpp"
 #include "uvopenmediadlg.hpp"
 #include "conf/uvconf.hpp"
 #include "def/uvdef.hpp"

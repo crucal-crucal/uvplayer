@@ -42,14 +42,14 @@ public:
 
 public slots:
 	void setLayout(int row, int col);
-	void play(CUVMedia& media);
+	void play(const CUVMedia& media);
 
 protected:
 	const QScopedPointer<CUVMultiViewPrivate> d_ptr{ nullptr };
 
-	void resizeEvent(QResizeEvent* e) override;
-	void mousePressEvent(QMouseEvent* e) override;
-	void mouseReleaseEvent(QMouseEvent* e) override;
-	void mouseMoveEvent(QMouseEvent* e) override;
-	void mouseDoubleClickEvent(QMouseEvent* e) override;
+	void resizeEvent(QResizeEvent* event) override;
+	void mousePressEvent(QMouseEvent* event) override;
+	void mouseReleaseEvent(QMouseEvent* event) override;
+	void mouseMoveEvent(QMouseEvent* event) override;
+	void mouseDoubleClickEvent(QMouseEvent* event) override;
 };

@@ -30,10 +30,10 @@ static int64_t gettimeofday_ms() {
 	return value.count();
 }
 
-static int uvplayer_event_callback(const uvplayer_event_e e, void* userdata) {
+static int uvplayer_event_callback(const uvplayer_event_e& event, void* userdata) {
 	const auto video_widget = static_cast<CUVVideoWidget*>(userdata);
 	int custom_event_type;
-	switch (e) {
+	switch (event) {
 		case UVPLAYER_OPENED:
 			custom_event_type = CUVCustomEvent::OpenMediaSucceed;
 			break;
@@ -180,8 +180,7 @@ void CUVVideoWidget::retry() { // NOLINT
 	if (retry_maxcnt < 0 || retry_cnt < retry_maxcnt) {
 		++retry_cnt;
 		const int64_t cur_time = gettimeofday_ms();
-		const int64_t timespan = cur_time - last_retry_time;
-		if (timespan >= retry_interval) {
+		if (const int64_t timespan = cur_time - last_retry_time; timespan >= retry_interval) {
 			last_retry_time = cur_time;
 			restart();
 		} else {
@@ -202,10 +201,10 @@ void CUVVideoWidget::onTimerUpdate() const {
 
 	if (pImpl_player->pop_frame(&videownd->last_frame) == 0) {
 		// update progress bar
-		if (toolbar->sldProgress()->isVisible()) {
+		if (toolbar->sldProgress->isVisible()) {
 			int progress = (videownd->last_frame.ts - pImpl_player->start_time) / 1000; // NOLINT
-			if (toolbar->sldProgress()->value() != progress && !toolbar->sldProgress()->isSliderDown()) {
-				toolbar->sldProgress()->setValue(progress);
+			if (toolbar->sldProgress->value() != progress && !toolbar->sldProgress->isSliderDown()) {
+				toolbar->sldProgress->setValue(progress);
 			}
 		}
 		// update video frame
@@ -222,9 +221,10 @@ void CUVVideoWidget::onOpenSucceed() {
 		char szTime[16];
 		duration_fmt(duration_sec, szTime);
 		toolbar->lblDuration()->setText(szTime);
-		toolbar->sldProgress()->setRange(0, duration_sec);
+		toolbar->sldProgress->setRange(0, duration_sec);
 		toolbar->lblDuration()->show();
-		toolbar->sldProgress()->show();
+		toolbar->sldProgress->custom_show();
+		toolbar->lbCurDuration()->show();
 	}
 
 	if (retry_cnt != 0) {
@@ -329,8 +329,8 @@ void CUVVideoWidget::setAspectRatio(const aspect_ratio_t& aspect_ratio) {
 	dst_w = dst_w >> 2 << 2;
 	dst_h = dst_h >> 2 << 2;
 
-	int x = border + (scr_w - dst_w) / 2;
-	int y = border + (scr_h - dst_h) / 2;
+	const int x = border + (scr_w - dst_w) / 2;
+	const int y = border + (scr_h - dst_h) / 2;
 	videownd->setgeometry(QRect(x, y, dst_w, dst_h));
 }
 
@@ -342,7 +342,7 @@ void CUVVideoWidget::init() {
 	toolbar = new CUVVideoToolbar(this);
 	btnMedia = getPushButton(QPixmap(":/image/media_bk.png"), tr("Open media"), {}, this);
 
-	auto vbox = new QVBoxLayout;
+	const auto vbox = new QVBoxLayout;
 	vbox->setContentsMargins(1, 1, 1, 1);
 	vbox->setSpacing(1);
 
@@ -358,8 +358,7 @@ void CUVVideoWidget::init() {
 
 void CUVVideoWidget::initConnect() {
 	connect(btnMedia, &QPushButton::clicked, [this] {
-		CUVOpenMediaDlg dlg(this);
-		if (dlg.exec() == QDialog::Accepted) {
+		if (CUVOpenMediaDlg dlg(this); dlg.exec() == QDialog::Accepted) {
 			open(dlg.media);
 		}
 	});
@@ -368,10 +367,15 @@ void CUVVideoWidget::initConnect() {
 	connect(toolbar, &CUVVideoToolbar::sigStart, this, &CUVVideoWidget::start);
 	connect(toolbar, &CUVVideoToolbar::sigPause, this, &CUVVideoWidget::pause);
 	connect(toolbar, &CUVVideoToolbar::sigStop, this, &CUVVideoWidget::stop);
-	connect(toolbar->sldProgress(), &QSlider::sliderReleased, [this]() {
+	connect(toolbar->sldProgress, &CUVMaterialSlider::sliderReleased, [this]() {
 		if (pImpl_player) {
-			pImpl_player->seek(toolbar->sldProgress()->value() * 1000);
+			pImpl_player->seek(toolbar->sldProgress->value() * 1000);
 		}
+	});
+	connect(toolbar->sldProgress, &CUVMaterialSlider::valueChanged, this, [=](const int value) {
+		// 使用格式化函数设置 lbCurDuration
+		QString formattedTime = formatTime(value);
+		toolbar->lbCurDuration()->setText(formattedTime);
 	});
 
 	timer = new QTimer(this);
@@ -388,16 +392,16 @@ void CUVVideoWidget::updateUI() const {
 	btnMedia->setVisible(status == STOP);
 
 	if (status == STOP) {
-		toolbar->sldProgress()->hide();
+		toolbar->sldProgress->custom_hide();
 		toolbar->lblDuration()->hide();
+		toolbar->lbCurDuration()->hide();
 	}
 }
 
 void CUVVideoWidget::initAspectRatio(const std::string& str) {
 	aspect_ratio.type = ASPECT_FULL; // Default type
-	const auto c_str = str.c_str();
 
-	if (str.empty() || strcmp(c_str, "100%") == 0) { // NOLINT
+	if (const auto c_str = str.c_str(); str.empty() || strcmp(c_str, "100%") == 0) {
 		aspect_ratio.type = ASPECT_FULL;
 	} else if (_stricmp(c_str, "w:h") == 0) {
 		aspect_ratio.type = ASPECT_ORIGINAL_RATIO;
@@ -447,42 +451,40 @@ void CUVVideoWidget::initAspectRatio(const std::string& str) {
 			aspect_ratio.w = w;
 			aspect_ratio.h = h;
 		}
-	} else {
-		aspect_ratio.type = ASPECT_FULL;
 	}
 }
 
-void CUVVideoWidget::resizeEvent(QResizeEvent* e) {
+void CUVVideoWidget::resizeEvent(QResizeEvent* event) {
 	setAspectRatio(aspect_ratio);
 }
 
-void CUVVideoWidget::enterEvent(QEvent* e) {
+void CUVVideoWidget::enterEvent(QEvent* event) {
 	updateUI();
 
 	titlebar->show();
 	toolbar->show();
 }
 
-void CUVVideoWidget::leaveEvent(QEvent* e) {
+void CUVVideoWidget::leaveEvent(QEvent* event) {
 	titlebar->hide();
 	toolbar->hide();
 }
 
-void CUVVideoWidget::mousePressEvent(QMouseEvent* e) {
-	ptMousePress = e->pos();
-	e->ignore();
+void CUVVideoWidget::mousePressEvent(QMouseEvent* event) {
+	ptMousePress = event->pos();
+	event->ignore();
 }
 
-void CUVVideoWidget::mouseReleaseEvent(QMouseEvent* e) {
-	e->ignore();
+void CUVVideoWidget::mouseReleaseEvent(QMouseEvent* event) {
+	event->ignore();
 }
 
-void CUVVideoWidget::mouseMoveEvent(QMouseEvent* e) {
-	e->ignore();
+void CUVVideoWidget::mouseMoveEvent(QMouseEvent* event) {
+	event->ignore();
 }
 
-void CUVVideoWidget::customEvent(QEvent* e) {
-	switch (e->type()) {
+void CUVVideoWidget::customEvent(QEvent* event) {
+	switch (event->type()) {
 		case CUVCustomEvent::OpenMediaSucceed:
 			onOpenSucceed();
 			break;
@@ -498,4 +500,14 @@ void CUVVideoWidget::customEvent(QEvent* e) {
 		default:
 			break;
 	}
+}
+
+QString CUVVideoWidget::formatTime(int nseconds) {
+	int hours = nseconds / 3600;
+	int minutes = (nseconds % 3600) / 60;
+	int secs = nseconds % 60;
+	return QString("%1:%2:%3")
+			.arg(hours, 2, 10, QChar('0'))
+			.arg(minutes, 2, 10, QChar('0'))
+			.arg(secs, 2, 10, QChar('0'));
 }

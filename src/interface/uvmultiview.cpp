@@ -29,8 +29,8 @@ void CUVMultiViewPrivate::initUI() {
 		views.push_back(player);
 	}
 
-	int row = g_confile->get<int>("mv_row", "ui", MV_STYLE_ROW);
-	int col = g_confile->get<int>("mv_col", "ui", MV_STYLE_COL);
+	const int row = g_confile->get<int>("mv_row", "ui", MV_STYLE_ROW);
+	const int col = g_confile->get<int>("mv_col", "ui", MV_STYLE_COL);
 	q->setLayout(row, col);
 
 	labDrag = new QLabel(q);
@@ -49,26 +49,21 @@ void CUVMultiViewPrivate::initConnect() { // NOLINT
 void CUVMultiViewPrivate::updateUI() {
 	Q_Q(CUVMultiView);
 
-	int row = table.row;
-	int col = table.col;
+	const int row = table.row, col = table.col;
 	if (row == 0 || col == 0) return;
-	int cell_w = q->width() / col;
-	int cell_h = q->height() / row;
+	const int cell_w = q->width() / col, cell_h = q->height() / row;
 
-	int margin_x = (q->width() - cell_w * col) / 2;
-	int margin_y = (q->height() - cell_h * row) / 2;
-	int x = margin_x;
-	int y = margin_y;
-	for (auto& view: views) {
+	const int margin_x = (q->width() - cell_w * col) / 2, margin_y = (q->height() - cell_h * row) / 2;
+	int x = margin_x, y = margin_y;
+	for (const auto& view: views) {
 		view->hide();
 	}
 
 	int cnt = 0;
-	CUVTableCell cell;
+	CUVTableCell cell{};
 	for (int r = 0; r < row; ++r) {
 		for (int c = 0; c < col; ++c) {
-			int id = r * col + c + 1;
-			if (table.getTableCell(id, cell)) {
+			if (const int id = r * col + c + 1; table.getTableCell(id, cell)) {
 				if (QWidget* wdg = getPlayerByID(id)) {
 					wdg->setGeometry(x, y, cell_w * cell.colspan() - SEPARATOR_LINE_WIDTH, cell_h * cell.rowspan() - SEPARATOR_LINE_WIDTH);
 					wdg->show();
@@ -89,17 +84,14 @@ void CUVMultiViewPrivate::saveLayout() {
 }
 
 void CUVMultiViewPrivate::restoreLayout() {
-	CUVTable tmp = table;
-	table = prev_table;
-	prev_table = tmp;
+	std::swap(prev_table, table);
 	updateUI();
 }
 
-void CUVMultiViewPrivate::mergeCells(int lt, int rb) {
+void CUVMultiViewPrivate::mergeCells(const int lt, const int rb) {
 	// find first non-stop player as lt
 	for (int i = lt; i <= rb; ++i) {
-		CUVVideoWidget* player = getPlayerByID(i);
-		if (player && player->status != CUVVideoWidget::STOP) {
+		if (CUVVideoWidget* player = getPlayerByID(i); player && player->status != CUVVideoWidget::STOP) {
 			exchangeCells(player, getPlayerByID(lt));
 			break;
 		}
@@ -113,8 +105,8 @@ void CUVMultiViewPrivate::mergeCells(int lt, int rb) {
 void CUVMultiViewPrivate::exchangeCells(CUVVideoWidget* player1, CUVVideoWidget* player2) {
 	qDebug("exchange %d<=>%d", player1->playerid, player2->playerid);
 
-	QRect rcTmp = player1->geometry();
-	int idTmp = player1->playerid;
+	const QRect rcTmp = player1->geometry();
+	const int idTmp = player1->playerid;
 
 	player1->setGeometry(player2->geometry());
 	player1->playerid = player2->playerid;
@@ -134,7 +126,7 @@ void CUVMultiViewPrivate::stretch(QWidget* wdg) {
 		bStretch = false;
 	} else {
 		saveLayout();
-		for (auto& view: views) {
+		for (const auto& view: views) {
 			view->hide();
 		}
 		wdg->setGeometry(q->rect());
@@ -143,19 +135,18 @@ void CUVMultiViewPrivate::stretch(QWidget* wdg) {
 	}
 }
 
-CUVVideoWidget* CUVMultiViewPrivate::getPlayerByID(int playerid) {
-	for (auto& view: views) {
-		auto player = dynamic_cast<CUVVideoWidget*>(view);
-		if (player->playerid == playerid) {
+CUVVideoWidget* CUVMultiViewPrivate::getPlayerByID(const int playerid) {
+	for (const auto& view: views) {
+		if (const auto player = dynamic_cast<CUVVideoWidget*>(view); player->playerid == playerid) {
 			return player;
 		}
 	}
 	return nullptr;
 }
 
-CUVVideoWidget* CUVMultiViewPrivate::getPlayerByPos(const QPoint& pt) {
-	for (auto wdg: views) {
-		if (wdg->isVisible() && wdg->geometry().contains(pt)) {
+CUVVideoWidget* CUVMultiViewPrivate::getPlayerByPos(const QPoint& point) {
+	for (const auto& wdg: views) {
+		if (wdg->isVisible() && wdg->geometry().contains(point)) {
 			return dynamic_cast<CUVVideoWidget*>(wdg);
 		}
 	}
@@ -163,9 +154,8 @@ CUVVideoWidget* CUVMultiViewPrivate::getPlayerByPos(const QPoint& pt) {
 }
 
 CUVVideoWidget* CUVMultiViewPrivate::getIdlePlayer() {
-	for (auto& view: views) {
-		auto player = dynamic_cast<CUVVideoWidget*>(view);
-		if (player->isVisible() && player->status == CUVVideoWidget::STOP) {
+	for (const auto& view: views) {
+		if (const auto player = dynamic_cast<CUVVideoWidget*>(view); player->isVisible() && player->status == CUVVideoWidget::STOP) {
 			return player;
 		}
 	}
@@ -184,7 +174,7 @@ CUVMultiView::CUVMultiView(QWidget* parent) : QWidget(parent), d_ptr(new CUVMult
 
 CUVMultiView::~CUVMultiView() = default;
 
-void CUVMultiView::setLayout(int row, int col) {
+void CUVMultiView::setLayout(const int row, const int col) {
 	Q_D(CUVMultiView);
 
 	d->saveLayout();
@@ -194,44 +184,41 @@ void CUVMultiView::setLayout(int row, int col) {
 	g_confile->set<int>("mv_col", col, "ui");
 }
 
-void CUVMultiView::play(CUVMedia& media) {
+void CUVMultiView::play(const CUVMedia& media) {
 	Q_D(CUVMultiView);
 
-	CUVVideoWidget* player = d->getIdlePlayer();
-	if (!player) {
+	if (CUVVideoWidget* player = d->getIdlePlayer(); !player) {
 		UVMessageBox::CUVMessageBox::information(this, tr("Info"), tr("No spare player, please stop one and try agian!"));
 	} else {
 		player->open(media);
 	}
 }
 
-void CUVMultiView::resizeEvent(QResizeEvent* e) {
+void CUVMultiView::resizeEvent(QResizeEvent* event) {
 	Q_D(CUVMultiView);
 
 	d->updateUI();
 }
 
-void CUVMultiView::mousePressEvent(QMouseEvent* e) {
+void CUVMultiView::mousePressEvent(QMouseEvent* event) {
 	Q_D(CUVMultiView);
 
-	d->ptMousePress = e->pos();
+	d->ptMousePress = event->pos();
 	d->tsMousePress = gettick();
 }
 
-void CUVMultiView::mouseReleaseEvent(QMouseEvent* e) {
+void CUVMultiView::mouseReleaseEvent(QMouseEvent* event) {
 	Q_D(CUVMultiView);
 
 	if (d->action == EXCHANGE) {
 		CUVVideoWidget* player1 = d->getPlayerByPos(d->ptMousePress);
-		CUVVideoWidget* player2 = d->getPlayerByPos(e->pos());
-		if (player1 && player2 && player1 != player2) {
+		if (CUVVideoWidget* player2 = d->getPlayerByPos(event->pos()); player1 && player2 && player1 != player2) {
 			CUVMultiViewPrivate::exchangeCells(player1, player2);
 		}
 	} else if (d->action == MERGE) {
-		QRect rc = adjustRect(d->ptMousePress, e->pos());
-		CUVVideoWidget* player1 = d->getPlayerByPos(rc.topLeft());
-		CUVVideoWidget* player2 = d->getPlayerByPos(rc.bottomRight());
-		if (player1 && player2 && player1 != player2) {
+		const QRect rc = adjustRect(d->ptMousePress, event->pos());
+		const CUVVideoWidget* player1 = d->getPlayerByPos(rc.topLeft());
+		if (const CUVVideoWidget* player2 = d->getPlayerByPos(rc.bottomRight()); player1 && player2 && player1 != player2) {
 			d->mergeCells(player1->playerid, player2->playerid);
 		}
 	}
@@ -241,7 +228,7 @@ void CUVMultiView::mouseReleaseEvent(QMouseEvent* e) {
 	setCursor(Qt::ArrowCursor);
 }
 
-void CUVMultiView::mouseMoveEvent(QMouseEvent* e) {
+void CUVMultiView::mouseMoveEvent(QMouseEvent* event) {
 	Q_D(CUVMultiView);
 
 	CUVVideoWidget* player = d->getPlayerByPos(d->ptMousePress);
@@ -249,7 +236,7 @@ void CUVMultiView::mouseMoveEvent(QMouseEvent* e) {
 		return;
 	}
 
-	if (e->buttons() == Qt::LeftButton) {
+	if (event->buttons() == Qt::LeftButton) {
 		if (!d->labDrag->isVisible()) {
 			if (gettick() - d->tsMousePress < 300) return;
 			d->action = EXCHANGE;
@@ -258,24 +245,24 @@ void CUVMultiView::mouseMoveEvent(QMouseEvent* e) {
 			d->labDrag->setVisible(true);
 		}
 		if (d->labDrag->isVisible()) {
-			d->labDrag->move(e->pos() - QPoint(d->labDrag->width() / 2, d->labDrag->height()));
+			d->labDrag->move(event->pos() - QPoint(d->labDrag->width() / 2, d->labDrag->height()));
 		}
-	} else if (e->buttons() == Qt::RightButton) {
+	} else if (event->buttons() == Qt::RightButton) {
 		if (!d->labRect->isVisible()) {
 			d->action = MERGE;
 			setCursor(Qt::CrossCursor);
 			d->labRect->setVisible(true);
 		}
 		if (d->labRect->isVisible()) {
-			d->labRect->setGeometry(adjustRect(d->ptMousePress, e->pos()));
+			d->labRect->setGeometry(adjustRect(d->ptMousePress, event->pos()));
 		}
 	}
 }
 
-void CUVMultiView::mouseDoubleClickEvent(QMouseEvent* e) {
+void CUVMultiView::mouseDoubleClickEvent(QMouseEvent* event) {
 	Q_D(CUVMultiView);
 
-	if (CUVVideoWidget* player = d->getPlayerByPos(e->pos())) {
+	if (CUVVideoWidget* player = d->getPlayerByPos(event->pos())) {
 		d->stretch(player);
 	}
 }

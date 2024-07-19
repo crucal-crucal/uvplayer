@@ -6,7 +6,7 @@
 
 class CUVMainWindowPrivate;
 
-class CUVMainWindow : public QMainWindow {
+class CUVMainWindow final : public QMainWindow {
 	Q_OBJECT
 	Q_DISABLE_COPY(CUVMainWindow)
 	Q_DECLARE_PRIVATE(CUVMainWindow)
@@ -33,5 +33,5 @@ protected:
 	QScopedPointer<CUVMainWindowPrivate> d_ptr{ nullptr };
 
 	void keyPressEvent(QKeyEvent* event) override;
-	void changeEvent(QEvent*) override;
+	void changeEvent(QEvent* event) override;
 };

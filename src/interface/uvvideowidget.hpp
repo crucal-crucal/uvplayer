@@ -45,13 +45,14 @@ protected:
 	void updateUI() const;
 	void initAspectRatio(const std::string& str);
 
-	void resizeEvent(QResizeEvent* e) override;
-	void enterEvent(QEvent* e) override;
-	void leaveEvent(QEvent* e) override;
-	void mousePressEvent(QMouseEvent* e) override;
-	void mouseReleaseEvent(QMouseEvent* e) override;
-	void mouseMoveEvent(QMouseEvent* e) override;
-	void customEvent(QEvent* e) override;
+	void resizeEvent(QResizeEvent* event) override;
+	void enterEvent(QEvent* event) override;
+	void leaveEvent(QEvent* event) override;
+	void mousePressEvent(QMouseEvent* event) override;
+	void mouseReleaseEvent(QMouseEvent* event) override;
+	void mouseMoveEvent(QMouseEvent* event) override;
+	void customEvent(QEvent* event) override;
+	static QString formatTime(int nseconds);
 
 public:
 	int playerid{};

@@ -6,6 +6,8 @@
 #include "interface/uvvideoplayer.hpp"
 #include "util/uvffmpeg_util.hpp"
 
+#define AV_DEFAULT_LOGLEVEL AV_LOG_TRACE
+
 class CUVFFPlayer final : public CUVVideoPlayer, public CUVThread {
 public:
 	CUVFFPlayer();
@@ -29,6 +31,7 @@ public:
 	int seek(int64_t ms) override;
 
 private:
+	static void logCallBack(void* ptr, int level, const char* fmt, va_list vl);
 	bool doPrepare() override;
 	void doTask() override;
 	bool doFinish() override;
@@ -41,6 +44,8 @@ public:
 	int quit{};
 
 private:
+	static FILE* m_pLogFile;
+	static QString ff_logPath;
 	static std::atomic_flag s_ffmpeg_init;
 
 	AVDictionary* fmt_opts{ nullptr };
@@ -74,6 +79,7 @@ private:
 	AVPixelFormat dst_pix_fmt{};
 	SwsContext* sws_ctx{ nullptr };
 	uint8_t* data[4]{ nullptr };
+	AVFrame* pFrame{};
 	int linesize[4]{};
 	CUVFrame m_frame{};
 };

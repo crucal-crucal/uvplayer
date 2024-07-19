@@ -8,7 +8,7 @@ class QAction;
 class CUVMainWindow;
 class CUVCenterWidget;
 
-class CUVMainWindowPrivate : public QObject {
+class CUVMainWindowPrivate final : public QObject {
 	Q_OBJECT
 	Q_DISABLE_COPY(CUVMainWindowPrivate)
 	Q_DECLARE_PUBLIC(CUVMainWindow)
@@ -27,6 +27,6 @@ public:
 	QAction* m_pActFullScreen{ nullptr };
 	QAction* m_pActMvFullScreen{ nullptr };
 
-	QVector<QToolBar*> m_toolBars{ };
+	QVector<QToolBar*> m_toolBars{};
 	CUVCenterWidget* m_pCenterWidget{ nullptr };
 };

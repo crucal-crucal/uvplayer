@@ -25,7 +25,7 @@ enum uvplayer_event_e {
 	UVPLAYER_ERROR,
 };
 
-typedef int (*uvplayer_event_cb)(uvplayer_event_e e, void* userdata);
+typedef int (*uvplayer_event_cb)(const uvplayer_event_e& event, void* userdata);
 
 
 class CUVVideoPlayer : public QObject {
@@ -89,14 +89,14 @@ public:
 		return frame_buf.pop(pFrame);
 	}
 
-	void set_event_callback(const uvplayer_event_cb cb, void* userdata) {
+	void set_event_callback(const uvplayer_event_cb& cb, void* userdata) {
 		event_cb = cb;
 		event_cb_userdata = userdata;
 	}
 
-	void event_callback(const uvplayer_event_e e) const {
+	void event_callback(const uvplayer_event_e& event) const {
 		if (event_cb) {
-			event_cb(e, event_cb_userdata);
+			event_cb(event, event_cb_userdata);
 		}
 	}
 

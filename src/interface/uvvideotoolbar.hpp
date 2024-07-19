@@ -2,22 +2,23 @@
 
 #include <QLabel>
 #include <QPushButton>
-#include <QSlider>
 
-class CUVVideoToolbar : public QFrame {
+#include "uvmaterialslider/uvmaterialslider.hpp"
+
+class CUVVideoToolbar final : public QFrame {
 	Q_OBJECT
 
 public:
 	explicit CUVVideoToolbar(QWidget* parent = nullptr);
 	~CUVVideoToolbar() override;
 
-	QSlider* sldProgress() { return m_pSldProgress; }
+	[[nodiscard]] QLabel* lblDuration() const { return m_pLbDuration; }
 
-	QLabel* lblDuration() { return m_pLbDuration; }
+	[[nodiscard]] QLabel* lbCurDuration() const { return m_pLbCurDuration; }
 
-	QPushButton* btnStart() { return m_pBtnStart; }
+	[[nodiscard]] QPushButton* btnStart() const { return m_pBtnStart; }
 
-	QPushButton* btnPause() { return m_pBtnPause; }
+	[[nodiscard]] QPushButton* btnPause() const { return m_pBtnPause; }
 
 signals:
 	void sigStart();
@@ -28,7 +29,7 @@ protected:
 	void init();
 	void initConnect();
 
-private:
+public:
 	QPushButton* m_pBtnStart{ nullptr };
 	QPushButton* m_pBtnPause{ nullptr };
 
@@ -36,6 +37,7 @@ private:
 	QPushButton* m_pBtnStop{ nullptr };
 	QPushButton* m_pBtnNext{ nullptr };
 
-	QSlider* m_pSldProgress{ nullptr };
+	QLabel* m_pLbCurDuration{ nullptr };
+	CUVMaterialSlider* sldProgress{ nullptr };
 	QLabel* m_pLbDuration{ nullptr };
 };

@@ -1,9 +1,9 @@
 ﻿#pragma once
 
-#include <QRect>
-#include <QtGlobal>
 #include <QApplication>
 #include <QDesktopWidget>
+#include <QRect>
+#include <QtGlobal>
 
 #ifdef Q_OS_WIN
 #include <Windows.h>
@@ -119,15 +119,15 @@ ASCII:
 
 #ifndef SAFE_ALLOC
 #define SAFE_ALLOC(p, size) \
-do { \
-void* ptr = malloc(size); \
-if (!ptr) { \
-qFatal("Out of memory"); \
-exit(-1); \
-}\
-memset(ptr, 0, size); \
-*(void**)&(p) = ptr; \
-} while(0)
+	do { \
+		void* ptr = malloc(size); \
+		if (!ptr) { \
+			qFatal("Out of memory"); \
+			exit(-1); \
+		}\
+		memset(ptr, 0, size); \
+		*(void**)&(p) = ptr; \
+	} while(0)
 #endif
 
 #ifndef SAFE_FREE
@@ -167,19 +167,18 @@ memset(ptr, 0, size); \
 #define DESKTOP_WIDTH   qApp->desktop()->availableGeometry().width()
 #define DESKTOP_HEIGHT  qApp->desktop()->availableGeometry().height()
 
-inline QRect adjustRect(QPoint pt1, QPoint pt2) {
-	int x1 = qMin(pt1.x(), pt2.x());
-	int x2 = qMax(pt1.x(), pt2.x());
-	int y1 = qMin(pt1.y(), pt2.y());
-	int y2 = qMax(pt1.y(), pt2.y());
-	return QRect(QPoint(x1, y1), QPoint(x2, y2));
+inline QRect adjustRect(const QPoint& pt1, const QPoint& pt2) {
+	const int x1 = qMin(pt1.x(), pt2.x());
+	const int x2 = qMax(pt1.x(), pt2.x());
+	const int y1 = qMin(pt1.y(), pt2.y());
+	const int y2 = qMax(pt1.y(), pt2.y());
+	return { QPoint(x1, y1), QPoint(x2, y2) };
 }
 
 inline void centerWidget(QWidget* wdg) {
-	int w = wdg->width();
-	int h = wdg->height();
-	if (w < DESKTOP_WIDTH && h < DESKTOP_HEIGHT) {
-		wdg->setGeometry((DESKTOP_WIDTH - w) / 2, (DESKTOP_HEIGHT - h) / 2, w, h);
+	const int w = wdg->width();
+	if (const int h = wdg->height(); w < DESKTOP_WIDTH && h < DESKTOP_HEIGHT) {    // NOLINT
+		wdg->setGeometry((DESKTOP_WIDTH - w) / 2, (DESKTOP_HEIGHT - h) / 2, w, h); // NOLINT
 	}
 }
 
@@ -200,3 +199,5 @@ inline unsigned int gettick() {
 //----------------scope-----------------------
 #define CONCAT_IMPL(x, y) x##y
 #define CONCAT(x, y) CONCAT_IMPL(x, y)
+
+#define ERRBUF_SIZE  4096

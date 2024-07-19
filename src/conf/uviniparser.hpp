@@ -24,7 +24,7 @@ key = value # span
 ***********************************/
 class CUVIniNode {
 public:
-	enum Type {
+	enum IniType {
 		INI_NODE_TYPE_UNKNOWN,
 		INI_NODE_TYPE_ROOT,
 		INI_NODE_TYPE_SECTION,
@@ -33,9 +33,9 @@ public:
 		INI_NODE_TYPE_SPAN,
 	} type = INI_NODE_TYPE_UNKNOWN;
 
-	std::string label; // section|key|comment
-	std::string value;
-	std::list<CUVIniNode*> children;
+	std::string label{}; // section | key | comment
+	std::string value{};
+	std::list<CUVIniNode*> children{};
 
 	explicit CUVIniNode();
 	virtual ~CUVIniNode();
@@ -44,7 +44,7 @@ public:
 
 	void del(const CUVIniNode* pNode);
 
-	[[nodiscard]] CUVIniNode* get(const std::string& label, Type type = INI_NODE_TYPE_KEY_VALUE) const;
+	[[nodiscard]] CUVIniNode* get(const std::string& label, const IniType& type = INI_NODE_TYPE_KEY_VALUE) const;
 };
 
 class CUVIniSection final : public CUVIniNode {
@@ -106,7 +106,7 @@ public:
 	std::string _filepath{};
 
 private:
-	CUVIniNode* _root{};
+	CUVIniNode* _root{ nullptr };
 };
 
 

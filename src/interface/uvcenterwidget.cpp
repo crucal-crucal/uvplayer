@@ -17,7 +17,7 @@ void CUVCenterWidget::init() {
 	mv = new CUVMultiView(this);
 	rside = new QWidget(this);
 
-	auto split = new QSplitter(Qt::Horizontal);
+	const auto split = new QSplitter(Qt::Horizontal);
 	split->addWidget(lside);
 	split->addWidget(mv);
 	split->addWidget(rside);
@@ -38,12 +38,12 @@ void CUVCenterWidget::init() {
 	split->setStretchFactor(1, 1);
 	split->setStretchFactor(2, 1);
 
-	auto hbox = new QHBoxLayout();
+	const auto hbox = new QHBoxLayout();
 	hbox->setContentsMargins(10,1,10,1);
 	hbox->setSpacing(1);
 	hbox->addWidget(split);
 	setLayout(hbox);
 }
 
-void CUVCenterWidget::initConnect() {
+void CUVCenterWidget::initConnect() { // NOLINT
 }
