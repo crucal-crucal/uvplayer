@@ -144,8 +144,8 @@ set(VIDEO_SRC
         video/uvthread.hpp
         video/uvffplayer.cpp
         video/uvffplayer.hpp
-#        video/uvcodec.cpp
-#        video/uvcodec.hpp
+        #        video/uvcodec.cpp
+        #        video/uvcodec.hpp
 )
 
 add_executable(${PROJECT_NAME}
@@ -164,6 +164,7 @@ target_link_libraries(${PROJECT_NAME}
 # app
 target_link_libraries(${PROJECT_NAME}
         uvmaterialslider
+        uvslider
         logger
         framelessMessageBox
         uvstring
@@ -176,6 +177,7 @@ add_definitions(-DQT_MESSAGELOGCONTEXT)
 add_subdirectory(logger)
 add_subdirectory(framelessMessageBox)
 add_subdirectory(uvstring)
+add_subdirectory(uvslider)
 add_subdirectory(uvshared)
 add_subdirectory(uvmaterialslider)
 

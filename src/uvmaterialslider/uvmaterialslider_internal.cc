@@ -28,12 +28,12 @@ CUVMaterialSliderStateMachine::CUVMaterialSliderStateMachine(CUVMaterialSlider* 
 	m_inactiveState->assignProperty(thumb, "haloSize", 0);
 	m_slidingState->assignProperty(thumb, "haloSize", 0);
 
-	m_pulseOutState->assignProperty(thumb, "haloSize", 35);
-	m_pulseInState->assignProperty(thumb, "haloSize", 28);
+	m_pulseOutState->assignProperty(thumb, "haloSize", m_thumb->haloSize());
+	m_pulseInState->assignProperty(thumb, "haloSize", m_thumb->haloSize());
 
-	m_inactiveState->assignProperty(thumb, "diameter", 11);
-	m_focusState->assignProperty(thumb, "diameter", 11);
-	m_slidingState->assignProperty(thumb, "diameter", 17);
+	m_inactiveState->assignProperty(thumb, "diameter", m_thumb->diameter());
+	m_focusState->assignProperty(thumb, "diameter", m_thumb->diameter());
+	m_slidingState->assignProperty(thumb, "diameter", m_thumb->diameter() + 7);
 
 	// Show halo on mouse enter
 	auto customTransition = new CUVMaterialStateTransition(SliderNoFocusMouseEnter);
@@ -120,7 +120,7 @@ CUVMaterialSliderStateMachine::CUVMaterialSliderStateMachine(CUVMaterialSlider* 
 	m_slidingState->addTransition(transition);
 
 	// Min. value transitions
-	m_minState->assignProperty(thumb, "borderWidth", 2);
+	m_minState->assignProperty(thumb, "borderWidth", m_thumb->borderWidth());
 	m_normalState->assignProperty(thumb, "borderWidth", 0);
 
 	m_sndState->setInitialState(m_minState);

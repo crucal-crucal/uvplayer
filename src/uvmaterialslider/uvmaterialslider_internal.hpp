@@ -79,9 +79,9 @@ private:
 	QColor m_borderColor{};
 	QColor m_fillColor{};
 	QColor m_haloColor{};
-	qreal m_diameter = 30;
+	qreal m_diameter{ 25 };
 	qreal m_borderWidth{ 2 };
-	qreal m_haloSize = 50;
+	qreal m_haloSize{ 35 };
 	int m_offset{};
 };
 
